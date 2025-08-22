@@ -28,7 +28,7 @@ const formSchema = z.object({
   category_image: z.any().optional(),
 });
 
-export function AddCategoryForm() {
+export function EditCategoryForm() {
   const [preview, setPreview] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
