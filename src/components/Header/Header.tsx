@@ -10,7 +10,6 @@ export default function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const avatarRef = useRef<HTMLDivElement>(null);
-  const [isOpen, setIsOpen] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -43,7 +42,7 @@ export default function Header() {
   const handleChangePassword = () => {
     console.log("Navigate to Change Password");
     setIsDropdownOpen(false);
-    setIsOpen(true);
+    // setIsOpen(true);
   };
 
   const handleSignOut = () => {

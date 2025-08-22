@@ -19,7 +19,7 @@ import Image from "next/image";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Categories", href: "/categories", icon: Grip },
+  { name: "Main Category", href: "/category", icon: Grip },
   { name: "Product", href: "/products", icon: ShoppingBasket },
   { name: "Order", href: "/orders", icon: ShoppingCart },
   { name: "Fabric", href: "/fabric", icon: FileText },
@@ -38,18 +38,28 @@ export function Sidebar() {
   return (
     <div className="flex h-screen sticky bottom-0 top-0 w-[250px] flex-col bg-[#212121] z-50">
       {/* Logo */}
-      <div className="h-[80px] flex items-center justify-center shadow-md">
-        <div className="text-2xl flex font-bold text-blue-600 uppercase tracking-wider">
-          <div className="h-[40px] w-[40px]">
-            <Image src="/images/dashboardLogo.gif" alt="" height={200} width={200} className="object-cover" />
+      <div className="h-[80px] flex items-center justify-start shadow-md ml-3">
+        <div className="text-2xl flex gap-1 font-bold text-blue-600 uppercase tracking-wider">
+          <div className="h-[50px] w-[50px]">
+            <Image
+              src="/images/dashboardLogo.gif"
+              alt=""
+              height={200}
+              width={200}
+              className="object-cover"
+            />
           </div>
-          <h1 className="text-green-500">T<span className="text-red-400">O</span>MAT</h1>
-          <span className="text-red-400">O</span>
+          <div>
+            <h1 className="text-green-500">
+              T<span className="text-red-400">O</span>MAT<span className="text-red-400">O</span>
+            </h1>
+            <p className="text-white text-[10px]">Tomaot.LID</p>
+          </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-6 flex flex-col items-center justify-start px-3 overflow-y-auto">
+      <nav className="flex-1 space-y-6 flex flex-col items-center justify-start px-3 overflow-y-auto mt-3">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href ||
