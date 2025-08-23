@@ -18,6 +18,9 @@ import { Input } from "@/components/ui/input";
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 // Dynamically import ReactQuill to prevent SSR error
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -34,6 +37,7 @@ const formSchema = z.object({
 
 export function AddCategoryForm() {
   const [preview, setPreview] = useState<string | null>(null);
+  const routar = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,8 +48,41 @@ export function AddCategoryForm() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) =>
-    console.log("Form Values:", values);
+  const addCategoryMutation = useMutation({
+    mutationFn: async (bodyData: FormData) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/addcategory`,
+        {
+          method: "POST",
+          headers: {
+            // "Content-Type": "application/json",
+          },
+          body: bodyData,
+        }
+      );
+      if (!res.ok) {
+        throw new Error("Failed to fetch category");
+      }
+
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      routar.push('/category')
+    },
+
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const formData = new FormData();
+    formData.append("categoryName", values?.category_name);
+    formData.append("categorydescription", values?.category_description);
+    formData.append("image", values?.category_image);
+    addCategoryMutation.mutate(formData);
+  };
 
   return (
     <Form {...form}>
@@ -61,7 +98,11 @@ export function AddCategoryForm() {
                 <FormItem>
                   <FormLabel>Category Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter category name" {...field} />
+                    <Input
+                      className="h-[50px]"
+                      placeholder="Enter category name"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -128,7 +169,7 @@ export function AddCategoryForm() {
                         height={300}
                         src={preview}
                         alt="Preview"
-                        className="h-48 w-full object-cover rounded-md shadow-md border border-gray-200"
+                        className="h-[270px] w-full object-cover rounded-md shadow-md border border-gray-200"
                       />
                     </div>
                   )}
@@ -141,7 +182,10 @@ export function AddCategoryForm() {
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" className="w-full md:w-1/3 mt-16">
+          <Button
+            type="submit"
+            className="w-full md:w-[33%] mt-5 h-[50px] text-base cursor-pointer"
+          >
             Submit
           </Button>
         </div>

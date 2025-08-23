@@ -15,11 +15,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { UpdateCategoryPayload } from "@/Types/categoryTypes";
+import { toast } from "sonner";
 
-// Dynamically import ReactQuill to prevent SSR error
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const formSchema = z.object({
@@ -34,6 +37,8 @@ const formSchema = z.object({
 
 export function EditCategoryForm() {
   const [preview, setPreview] = useState<string | null>(null);
+  const params = useParams();
+  const categoryId = params.id;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,8 +49,76 @@ export function EditCategoryForm() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) =>
-    console.log("Form Values:", values);
+  const { data: Acategory } = useQuery({
+    queryKey: ["single-categoy"],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/singlecategory/${categoryId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!res.ok) {
+        throw new Error("Category fetch successfully");
+      }
+
+      return res.json();
+    },
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: async (bodyData: FormData) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/editcategory/${categoryId}`,
+        {
+          method: "PUT",
+          // headers: {
+          //   "Content-Type": "application/json",
+          // },
+          body: bodyData,
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Singe categoy fatch");
+      }
+
+      return res.json();
+    },
+
+    onSuccess: (data) => {
+      toast.success(data?.message);
+    },
+
+    onError: (err) => {
+      toast.error(err?.message);
+    },
+  });
+
+  const newACategory = Acategory?.data || [];
+  console.log(newACategory);
+
+  useEffect(() => {
+    if (newACategory) {
+      form.reset({
+        category_name: newACategory?.categoryName,
+        category_image: null,
+        category_description: newACategory?.categorydescription,
+      });
+    }
+    setPreview(newACategory?.image);
+  }, [newACategory]);
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const formData = new FormData();
+    formData.append("categoryName", values?.category_name);
+    formData.append("categorydescription", values?.category_description);
+    formData.append("image", values?.category_image);
+    updateCategoryMutation.mutate(formData);
+  };
 
   return (
     <Form {...form}>
@@ -61,7 +134,11 @@ export function EditCategoryForm() {
                 <FormItem>
                   <FormLabel>Category Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter category name" {...field} />
+                    <Input
+                      placeholder="Enter category name"
+                      {...field}
+                      className="h-[50px]"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -128,7 +205,7 @@ export function EditCategoryForm() {
                         height={300}
                         src={preview}
                         alt="Preview"
-                        className="h-48 w-full object-cover rounded-md shadow-md border border-gray-200"
+                        className="h-[275px] w-full object-cover rounded-md shadow-md border border-gray-200"
                       />
                     </div>
                   )}
@@ -141,7 +218,10 @@ export function EditCategoryForm() {
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" className="w-full md:w-1/3 mt-16">
+          <Button
+            type="submit"
+            className="w-full h-[50px] md:w-[33%] mt-5 cursor-pointer text-base"
+          >
             Submit
           </Button>
         </div>

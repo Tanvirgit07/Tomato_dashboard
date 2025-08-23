@@ -1,42 +1,19 @@
-"use client"
-import { useQuery } from "@tanstack/react-query";
-import React from "react";
+"use client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
 import Image from "next/image";
-
-interface SubCategory {
-  _id: string;
-  name: string;
-  description: string;
-  image: string;
-  category: string;
-  publicId: string;
-  __v: number;
-}
-
-interface Category {
-  _id: string;
-  categoryName: string;
-  categorydescription: string;
-  image: string;
-  publicId: string;
-  subCategory: SubCategory[];
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-}
-
-interface ApiResponse {
-  success: boolean;
-  count: number;
-  categories: Category[];
-}
+import { ApiResponse, Category } from "@/Types/categoryTypes";
+import { SquarePen, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { toast } from "sonner";
+import DeleteConfirmModal from "@/components/Shear/DeleteConfirmModal";
 
 function CategoryList() {
   const {
     data: apiResponse,
     isLoading,
     isError,
-    error
+    error,
   } = useQuery<ApiResponse>({
     queryKey: ["category"],
     queryFn: async () => {
@@ -57,6 +34,49 @@ function CategoryList() {
     },
   });
 
+  const queryClient = useQueryClient();
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (categoryId: string | null) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/deletecategory/${categoryId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "Application/json",
+          },
+        }
+      );
+      if (!res.ok) {
+        throw new Error("Fail Delete");
+      }
+
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ["category"] });
+    },
+
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const handleDelete = (id: string) => {
+    setSelectedId(id);
+    setIsOpenModal(true);
+  };
+
+
+  const confoirmDelete = () => {
+    deleteCategoryMutation.mutate(selectedId);
+    setIsOpenModal(false);
+    setSelectedId(null);
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -72,10 +92,16 @@ function CategoryList() {
         <div className="flex items-center">
           <div className="text-red-600">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
             </svg>
           </div>
-          <span className="ml-2 text-red-800 font-medium">Error loading categories</span>
+          <span className="ml-2 text-red-800 font-medium">
+            Error loading categories
+          </span>
         </div>
         <p className="mt-2 text-red-700">{(error as Error)?.message}</p>
       </div>
@@ -88,11 +114,22 @@ function CategoryList() {
     <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4">
-          <h1 className="text-2xl font-bold text-white">Category Management</h1>
-          <p className="text-blue-100 mt-1">
-            Total Categories: {apiResponse?.count || 0}
-          </p>
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-white">
+              Category Management
+            </h1>
+            <p className="text-blue-100 mt-1">
+              Total Categories: {apiResponse?.count || 0}
+            </p>
+          </div>
+          <div>
+            <Link href="/category/add" className="">
+              <div className="px-4 py-2 bg-blue-500 text-white rounded-md cursor-pointer hover:bg-blue-600 transition">
+                Add Category
+              </div>
+            </Link>
+          </div>
         </div>
 
         {/* Table */}
@@ -115,22 +152,33 @@ function CategoryList() {
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Created Date
                 </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {categories.map((category, index) => (
-                <tr key={category._id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+              {categories.map((category: Category, index: number) => (
+                <tr
+                  key={category._id}
+                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
                       {category.categoryName}
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-600 max-w-xs">
-                      {category.categorydescription.length > 50
-                        ? `${category.categorydescription.substring(0, 50)}...`
-                        : category.categorydescription}
-                    </div>
+                    <div
+                      className="text-sm text-gray-600 max-w-xs"
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          category.categorydescription.length > 50
+                            ? category.categorydescription.substring(0, 50) +
+                              "..."
+                            : category.categorydescription,
+                      }}
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
@@ -172,23 +220,44 @@ function CategoryList() {
                         </div>
                       ))}
                       {category.subCategory.length === 0 && (
-                        <span className="text-sm text-gray-400 italic">No subcategories</span>
+                        <span className="text-sm text-gray-400 italic">
+                          No subcategories
+                        </span>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-600">
-                      {new Date(category.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}
+                      {new Date(category.createdAt).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        }
+                      )}
                     </div>
                     <div className="text-xs text-gray-400">
-                      {new Date(category.createdAt).toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {new Date(category.createdAt).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
+                    </div>
+                  </td>
+                  <td className="flex gap-2 justify-center items-center">
+                    <Link href={`/category/edit/${category?._id}`}>
+                      <div className="">
+                        <SquarePen />
+                      </div>
+                    </Link>
+                    <div
+                      className="cursor-pointer"
+                      onClick={() => handleDelete(category?._id)}
+                    >
+                      <Trash2 />
                     </div>
                   </td>
                 </tr>
@@ -213,11 +282,21 @@ function CategoryList() {
                 d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
               />
             </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No categories found</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by creating a new category.</p>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">
+              No categories found
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Get started by creating a new category.
+            </p>
           </div>
         )}
       </div>
+      <DeleteConfirmModal
+        onClose={() => setIsOpenModal(false)}
+        onConfirm={confoirmDelete}
+        isOpen={isOpenModal}
+        message="Are you sure to Delete This"
+      />
     </div>
   );
 }
