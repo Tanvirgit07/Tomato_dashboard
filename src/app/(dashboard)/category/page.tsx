@@ -1,8 +1,11 @@
 import React from 'react'
+import CategoeyList from './_components/CategoeyList'
 
 function page() {
   return (
-    <div>page</div>
+    <div>
+      <CategoeyList />
+    </div>
   )
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import "react-quill-new/dist/quill.snow.css";
 
@@ -16,7 +16,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import React, { useState } from "react";
-import ReactQuill from "react-quill-new";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+
+// Dynamically import ReactQuill to prevent SSR error
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const formSchema = z.object({
   category_name: z
@@ -119,7 +123,9 @@ export function EditCategoryForm() {
 
                   {preview && (
                     <div className="mt-2">
-                      <img
+                      <Image
+                        width={300}
+                        height={300}
                         src={preview}
                         alt="Preview"
                         className="h-48 w-full object-cover rounded-md shadow-md border border-gray-200"
