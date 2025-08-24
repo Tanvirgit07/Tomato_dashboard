@@ -295,7 +295,7 @@ function CategoryList() {
         onClose={() => setIsOpenModal(false)}
         onConfirm={confoirmDelete}
         isOpen={isOpenModal}
-        message="Are you sure to Delete This"
+        message="Are you sure you want to delete this item? This action cannot be undone."
       />
     </div>
   );
