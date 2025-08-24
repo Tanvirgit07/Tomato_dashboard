@@ -32,3 +32,25 @@ export interface UpdateCategoryPayload {
   categorydescription: string;  // camelCase
   image?: File | null;
 }
+
+
+
+export interface MainCategory {
+  _id: string;
+  categoryName: string;
+  categorydescription: string;
+  image: string;
+  publicId: string;
+  __v: number;
+  subCategory?: MainSubCategory[];
+}
+
+export interface MainSubCategory {
+  _id: string;
+  name: string;
+  description: string;
+  image: string;
+  publicId: string;
+  __v: number;
+  category: MainCategory;
+}
