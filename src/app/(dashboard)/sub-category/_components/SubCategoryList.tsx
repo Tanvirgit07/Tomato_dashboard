@@ -1,11 +1,18 @@
 "use client";
+import DeleteConfirmModal from "@/components/Shear/DeleteConfirmModal";
 import { Button } from "@/components/ui/button";
 import { MainSubCategory } from "@/Types/categoryTypes";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { SquarePen, Trash } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
+import { toast } from "sonner";
 
 function SubCategoryList() {
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [selectedId, setSelectedId] = useState<string>("");
+  const queryClient = useQueryClient();
+
   const {
     data: subCategory,
     isLoading,
@@ -30,6 +37,45 @@ function SubCategoryList() {
       return res.json();
     },
   });
+
+  const deleteSubCategoryMutation = useMutation({
+    mutationFn: async (subCategoryId: string) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/deleteSubCategory/${subCategoryId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to delete subcategory");
+      }
+
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast.success(data.massage || "Subcategory deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["all-subcategory"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Something went wrong");
+    },
+  });
+
+  const handleDelete = (id: string) => {
+    setSelectedId(id);
+    setIsOpenModal(true);
+  };
+
+  const confoirmDelete = () => {
+    deleteSubCategoryMutation.mutate(selectedId);
+    setIsOpenModal(false);
+    setSelectedId('');
+  };
 
   console.log(subCategory);
 
@@ -150,25 +196,30 @@ function SubCategoryList() {
 
                       {/* Description */}
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-700 max-w-xs">
+                        {/* <div className="text-sm text-gray-700 max-w-xs">
                           <p className="line-clamp-2">
                             {item.description || "No description available"}
                           </p>
-                        </div>
+                        </div> */}
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: item?.description,
+                          }}
+                        />
                       </td>
 
                       {/* Actions */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex space-x-2">
-                          <button className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-                            Edit
-                          </button>
-                          <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-                            View
-                          </button>
-                          <button className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
-                            Delete
-                          </button>
+                      <td className="flex gap-2 justify-center items-center">
+                        <Link href={`/sub-category/edit/${item?._id}`}>
+                          <div className="">
+                            <SquarePen />
+                          </div>
+                        </Link>
+                        <div
+                          className="cursor-pointer"
+                          onClick={() => handleDelete(item?._id)}
+                        >
+                          <Trash />
                         </div>
                       </td>
                     </tr>
@@ -191,6 +242,12 @@ function SubCategoryList() {
           </div>
         </div>
       </div>
+      <DeleteConfirmModal
+        onClose={() => setIsOpenModal(false)}
+        onConfirm={confoirmDelete}
+        isOpen={isOpenModal}
+        message="Are you sure you want to delete this item? This action cannot be undone."
+      />
     </div>
   );
 }
