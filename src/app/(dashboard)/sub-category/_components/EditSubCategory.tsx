@@ -52,7 +52,6 @@ export function EditSubCategory() {
     },
   });
 
-  // Fetch single subcategory
   const { data: singleSubcategory } = useQuery({
     queryKey: ["singleSubcategory", subcategoryId],
     queryFn: async () => {
@@ -100,33 +99,15 @@ export function EditSubCategory() {
   const findCategory = allCategory?.categories || [];
 
   const updateSubCategoryMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
+    mutationFn: async (bodyData: FormData) => {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/editsubcategory/${subcategoryId}`,
         {
-          method: "PUT",
-          body: formData,
+          method: "POST",
+          body: bodyData,
         }
       );
-
-      const contentType = res.headers.get("content-type");
-      if (!res.ok) {
-        if (contentType?.includes("application/json")) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || "Failed to update subcategory");
-        } else {
-          const text = await res.text();
-          throw new Error(
-            text || "Failed to update subcategory: non-JSON response"
-          );
-        }
-      }
-
-      if (contentType?.includes("application/json")) {
-        return res.json();
-      } else {
-        return { message: await res.text() };
-      }
+      return res.json();
     },
     onSuccess: (data) => {
       toast.success(data?.message || "Subcategory updated successfully");
