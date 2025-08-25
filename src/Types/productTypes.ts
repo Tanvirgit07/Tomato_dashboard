@@ -19,3 +19,14 @@ export interface FoodResponse {
   message: string;
   allFood: Product[];
 }
+
+
+
+export interface FormValues {
+  productName: string;
+  description: string;
+  price?: number;
+  discountPrice?: number;
+  category: string;
+  image?: any;            // optional
+};

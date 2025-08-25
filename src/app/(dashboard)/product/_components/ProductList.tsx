@@ -10,11 +10,18 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 // import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { Edit2, Trash2, Eye, Plus } from "lucide-react";
 import React from "react";
+import Link from "next/link";
 
 interface Product {
   _id: string;
@@ -80,18 +87,18 @@ function ProductList() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('bn-BD', {
-      style: 'currency',
-      currency: 'BDT',
+    return new Intl.NumberFormat("bn-BD", {
+      style: "currency",
+      currency: "BDT",
       minimumFractionDigits: 0,
     }).format(price);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -139,10 +146,12 @@ function ProductList() {
               Manage your product inventory and track sales performance
             </CardDescription>
           </div>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Product
-          </Button>
+           <Button asChild className="gap-2">
+      <Link href="/product/add">
+        <Plus className="h-4 w-4" />
+        Add Product
+      </Link>
+    </Button>
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span>Total Products: {productData.length}</span>
@@ -150,7 +159,7 @@ function ProductList() {
           <span>Last Updated: {new Date().toLocaleDateString()}</span>
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <Table>
@@ -163,7 +172,9 @@ function ProductList() {
                 <TableHead className="font-semibold">Discount</TableHead>
                 <TableHead className="font-semibold">Reviews</TableHead>
                 <TableHead className="font-semibold">Created</TableHead>
-                <TableHead className="text-center font-semibold w-[120px]">Actions</TableHead>
+                <TableHead className="text-center font-semibold w-[120px]">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -182,14 +193,14 @@ function ProductList() {
                 </TableRow>
               ) : (
                 productData.map((item: Product) => (
-                  <TableRow 
-                    key={item._id} 
+                  <TableRow
+                    key={item._id}
                     className="hover:bg-gray-50/50 transition-colors"
                   >
                     <TableCell>
                       <Avatar className="h-12 w-12 rounded-lg">
-                        <AvatarImage 
-                          src={item.image} 
+                        <AvatarImage
+                          src={item.image}
                           alt={item.name}
                           className="object-cover"
                         />
@@ -198,7 +209,7 @@ function ProductList() {
                         </AvatarFallback>
                       </Avatar>
                     </TableCell>
-                    
+
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="font-semibold text-gray-900 line-clamp-1">
@@ -209,16 +220,18 @@ function ProductList() {
                         </span>
                       </div>
                     </TableCell>
-                    
+
                     <TableCell>
-                      <div 
-                        // variant="secondary" 
-                        className={`capitalize ${getCategoryColor(item.category)}`}
+                      <div
+                        // variant="secondary"
+                        className={`capitalize ${getCategoryColor(
+                          item.category
+                        )}`}
                       >
                         {item.category}
                       </div>
                     </TableCell>
-                    
+
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="font-semibold text-gray-900">
@@ -231,31 +244,35 @@ function ProductList() {
                         )}
                       </div>
                     </TableCell>
-                    
+
                     <TableCell>
-                      <div 
+                      <div
                         // variant={item.discountPrice > 0 ? "default" : "secondary"}
                         className="font-medium"
                       >
-                        {item.discountPrice > 0 ? `${item.discountPrice}%` : "No Discount"}
+                        {item.discountPrice > 0
+                          ? `${item.discountPrice}%`
+                          : "No Discount"}
                       </div>
                     </TableCell>
-                    
+
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <span className="text-yellow-500">⭐</span>
                         <span className="font-medium">
-                          {item.reviews.length > 0 ? item.reviews.length : "No reviews"}
+                          {item.reviews.length > 0
+                            ? item.reviews.length
+                            : "No reviews"}
                         </span>
                       </div>
                     </TableCell>
-                    
+
                     <TableCell>
                       <span className="text-sm text-muted-foreground">
                         {formatDate(item.createdAt)}
                       </span>
                     </TableCell>
-                    
+
                     <TableCell>
                       <div className="flex items-center justify-center gap-1">
                         <Button
@@ -267,7 +284,7 @@ function ProductList() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        
+
                         <Button
                           variant="ghost"
                           size="sm"
@@ -277,7 +294,7 @@ function ProductList() {
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        
+
                         <Button
                           variant="ghost"
                           size="sm"
