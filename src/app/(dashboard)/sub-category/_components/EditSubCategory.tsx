@@ -15,109 +15,134 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
-import { UpdateCategoryPayload } from "@/Types/categoryTypes";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useParams, useRouter } from "next/navigation";
+import { Select } from "@headlessui/react";
+import { MainCategory } from "@/Types/categoryTypes";
 
+// Dynamically import ReactQuill to prevent SSR error
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const formSchema = z.object({
-  category_name: z
+  name: z
     .string()
     .min(2, { message: "Category name must be at least 2 characters." }),
-  category_description: z
+  description: z
     .string()
     .min(2, { message: "Description must be at least 2 characters." }),
-  category_image: z.any().optional(),
+  image: z.any().optional(),
+  category: z.string().nonempty("Category is required"),
 });
 
 export function EditSubCategory() {
   const [preview, setPreview] = useState<string | null>(null);
+  const routar = useRouter();
   const params = useParams();
-  const categoryId = params.id;
+  const subcategoryId = params.id;
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      category_name: "",
-      category_description: "",
-      category_image: null,
+      name: "",
+      description: "",
+      image: null,
+      category: "",
     },
   });
 
-  const { data: Acategory } = useQuery({
-    queryKey: ["single-categoy"],
+  const {
+    data: getSingleData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["singleSubCategory", subcategoryId],
     queryFn: async () => {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/singlecategory/${categoryId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/getsinglesubcategory/${subcategoryId}`
       );
+
       if (!res.ok) {
-        throw new Error("Category fetch successfully");
+        throw new Error("Failed to fetch single subcategory");
       }
 
       return res.json();
     },
   });
 
-  const updateCategoryMutation = useMutation({
+  const { data: subCategory } = useQuery({
+    queryKey: ["subcategory"],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/allcategory`
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch Sub categories");
+      }
+
+      return res.json();
+    },
+  });
+
+  const findcatgory = subCategory?.categories || [];
+  console.log(findcatgory);
+
+  useEffect(() => {
+    if (getSingleData) {
+      form.reset({
+        category: getSingleData?.data?.category?._id, // id set করো, name না
+        name: getSingleData?.data?.name || "",
+        description: getSingleData?.data?.description || "",
+        // image: null,
+      });
+      if (getSingleData?.data?.image) {
+        setPreview(getSingleData?.data?.image);
+      }
+    }
+  }, [getSingleData, form]);
+
+  const updateSubCategoryMutation = useMutation({
     mutationFn: async (bodyData: FormData) => {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/editcategory/${categoryId}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/editsubcategory/${subcategoryId}`,
         {
           method: "PUT",
-          // headers: {
-          //   "Content-Type": "application/json",
-          // },
           body: bodyData,
         }
       );
 
       if (!res.ok) {
-        throw new Error("Singe categoy fatch");
+        throw new Error("Failed to update subcategory");
       }
 
       return res.json();
     },
-
     onSuccess: (data) => {
-      toast.success(data?.message);
+      toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ["all-subcategory"] });
     },
-
-    onError: (err) => {
-      toast.error(err?.message);
+    onError: (error) => {
+      toast.error(error.message);
     },
   });
 
-  const newACategory = Acategory?.data || [];
-  console.log(newACategory);
-
-  useEffect(() => {
-    if (newACategory) {
-      form.reset({
-        category_name: newACategory?.categoryName,
-        category_image: null,
-        category_description: newACategory?.categorydescription,
-      });
-    }
-    setPreview(newACategory?.image);
-  }, [newACategory]);
-
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const formData = new FormData();
-    formData.append("categoryName", values?.category_name);
-    formData.append("categorydescription", values?.category_description);
-    formData.append("image", values?.category_image);
-    updateCategoryMutation.mutate(formData);
+    console.log(values);
+    formData.append("name", values?.name);
+    formData.append("description", values?.description);
+    formData.append("category", values.category);
+
+    if (values?.image instanceof File) {
+      formData.append("image", values.image);
+    }
+    updateSubCategoryMutation.mutate(formData);
+    console.log(formData);
   };
 
   return (
@@ -129,16 +154,41 @@ export function EditSubCategory() {
             {/* Category Name */}
             <FormField
               control={form.control}
-              name="category_name"
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sub Category Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="h-[50px]"
+                      placeholder="Enter category name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="category"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter category name"
-                      {...field}
+                    <Select
                       className="h-[50px]"
-                    />
+                      {...field}
+                      aria-label="Project status"
+                    >
+                      <option value="">Select Category</option>
+                      {findcatgory.map((item: MainCategory) => (
+                        <option key={item._id} value={item._id}>
+                          {item.categoryName}
+                        </option>
+                      ))}
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -148,10 +198,10 @@ export function EditSubCategory() {
             {/* Category Description */}
             <FormField
               control={form.control}
-              name="category_description"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category Description</FormLabel>
+                  <FormLabel>Aub Category Description</FormLabel>
                   <FormControl>
                     <ReactQuill
                       theme="snow"
@@ -171,10 +221,10 @@ export function EditSubCategory() {
           <div className="w-full md:w-1/3 space-y-4">
             <FormField
               control={form.control}
-              name="category_image"
+              name="image"
               render={({ field }) => (
                 <FormItem className="space-y-2">
-                  <FormLabel>Category Image</FormLabel>
+                  <FormLabel>Sub Category Image</FormLabel>
                   <FormControl>
                     <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-blue-500 hover:bg-gray-50 transition">
                       <span className="text-gray-500 mb-2">
@@ -205,7 +255,7 @@ export function EditSubCategory() {
                         height={300}
                         src={preview}
                         alt="Preview"
-                        className="h-[275px] w-full object-cover rounded-md shadow-md border border-gray-200"
+                        className="h-[270px] w-full object-cover rounded-md shadow-md border border-gray-200"
                       />
                     </div>
                   )}
@@ -220,7 +270,7 @@ export function EditSubCategory() {
         <div className="flex justify-end">
           <Button
             type="submit"
-            className="w-full h-[50px] md:w-[33%] mt-5 cursor-pointer text-base"
+            className="w-full md:w-[33%] mt-5 h-[50px] text-base cursor-pointer"
           >
             Submit
           </Button>

@@ -145,6 +145,7 @@ export function AddSubCategory() {
                       {...field}
                       aria-label="Project status"
                     >
+                      <option value="">Select Category</option>
                       {findcatgory.map((item: MainCategory) => (
                         <option key={item?._id} value={item?._id}>
                           {item?.categoryName}
