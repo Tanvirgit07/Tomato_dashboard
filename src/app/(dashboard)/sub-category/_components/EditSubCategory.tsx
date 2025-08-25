@@ -18,106 +18,152 @@ import { Input } from "@/components/ui/input";
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { Select } from "@headlessui/react";
 import { useParams } from "next/navigation";
-import { UpdateCategoryPayload } from "@/Types/categoryTypes";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Category } from "@/Types/categoryTypes";
 import { toast } from "sonner";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const formSchema = z.object({
-  category_name: z
+  name: z
     .string()
     .min(2, { message: "Category name must be at least 2 characters." }),
-  category_description: z
+  description: z
     .string()
     .min(2, { message: "Description must be at least 2 characters." }),
-  category_image: z.any().optional(),
+  image: z.any().optional(),
+  category: z.string().nonempty("Category is required"),
 });
 
 export function EditSubCategory() {
   const [preview, setPreview] = useState<string | null>(null);
   const params = useParams();
-  const categoryId = params.id;
+  const subcategoryId = params.id;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      category_name: "",
-      category_description: "",
-      category_image: null,
+      name: "",
+      description: "",
+      image: undefined,
+      category: "",
     },
   });
 
-  const { data: Acategory } = useQuery({
-    queryKey: ["single-categoy"],
+  // Fetch single subcategory
+  const { data: singleSubcategory } = useQuery({
+    queryKey: ["singleSubcategory", subcategoryId],
     queryFn: async () => {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/singlecategory/${categoryId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/getsinglesubcategory/${subcategoryId}`
       );
+
       if (!res.ok) {
-        throw new Error("Category fetch successfully");
+        try {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Failed to fetch subcategory");
+        } catch {
+          throw new Error(
+            "Failed to fetch subcategory: Server returned non-JSON"
+          );
+        }
       }
 
       return res.json();
     },
   });
 
-  const updateCategoryMutation = useMutation({
-    mutationFn: async (bodyData: FormData) => {
+  const SubcategoryOne = singleSubcategory?.data;
+
+  // Fetch all categories
+  const { data: allCategory } = useQuery({
+    queryKey: ["category"],
+    queryFn: async () => {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/editcategory/${categoryId}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/allcategory`
+      );
+      if (!res.ok) {
+        try {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Failed to fetch categories");
+        } catch {
+          throw new Error(
+            "Failed to fetch categories: Server returned non-JSON"
+          );
+        }
+      }
+      return res.json();
+    },
+  });
+  const findCategory = allCategory?.categories || [];
+
+  const updateSubCategoryMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/editsubcategory/${subcategoryId}`,
         {
           method: "PUT",
-          // headers: {
-          //   "Content-Type": "application/json",
-          // },
-          body: bodyData,
+          body: formData,
         }
       );
 
+      const contentType = res.headers.get("content-type");
       if (!res.ok) {
-        throw new Error("Singe categoy fatch");
+        if (contentType?.includes("application/json")) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Failed to update subcategory");
+        } else {
+          const text = await res.text();
+          throw new Error(
+            text || "Failed to update subcategory: non-JSON response"
+          );
+        }
       }
 
-      return res.json();
+      if (contentType?.includes("application/json")) {
+        return res.json();
+      } else {
+        return { message: await res.text() };
+      }
     },
-
     onSuccess: (data) => {
-      toast.success(data?.message);
+      toast.success(data?.message || "Subcategory updated successfully");
     },
-
-    onError: (err) => {
-      toast.error(err?.message);
+    onError: (error) => {
+      toast.error(error?.message || "Something went wrong");
     },
   });
 
-  const newACategory = Acategory?.data || [];
-  console.log(newACategory);
-
+  // Reset form with fetched subcategory data
   useEffect(() => {
-    if (newACategory) {
+    if (SubcategoryOne) {
       form.reset({
-        category_name: newACategory?.categoryName,
-        category_image: null,
-        category_description: newACategory?.categorydescription,
+        name: SubcategoryOne.name,
+        category: SubcategoryOne.category?._id,
+        description: SubcategoryOne.description,
+        image: undefined,
       });
+      setPreview(SubcategoryOne.image);
     }
-    setPreview(newACategory?.image);
-  }, [newACategory]);
+  }, [SubcategoryOne, form]);
 
+  // Handle form submit
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const formData = new FormData();
-    formData.append("categoryName", values?.category_name);
-    formData.append("categorydescription", values?.category_description);
-    formData.append("image", values?.category_image);
-    updateCategoryMutation.mutate(formData);
+    formData.append("name", values.name);
+    formData.append("description", values.description);
+    formData.append("category", values.category);
+
+    // Handle image: new file or existing image URL
+    if (values.image) {
+      formData.append("image", values.image);
+    } else if (SubcategoryOne?.image) {
+      formData.append("image", SubcategoryOne.image);
+    }
+
+    updateSubCategoryMutation.mutate(formData);
   };
 
   return (
@@ -126,18 +172,17 @@ export function EditSubCategory() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left Side: Inputs */}
           <div className="flex-1 space-y-6">
-            {/* Category Name */}
             <FormField
               control={form.control}
-              name="category_name"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category Name</FormLabel>
+                  <FormLabel>Sub Category Name</FormLabel>
                   <FormControl>
                     <Input
+                      className="h-[50px]"
                       placeholder="Enter category name"
                       {...field}
-                      className="h-[50px]"
                     />
                   </FormControl>
                   <FormMessage />
@@ -145,13 +190,37 @@ export function EditSubCategory() {
               )}
             />
 
-            {/* Category Description */}
             <FormField
               control={form.control}
-              name="category_description"
+              name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category Description</FormLabel>
+                  <FormLabel>Category</FormLabel>
+                  <FormControl>
+                    <Select
+                      className="h-[50px]"
+                      {...field}
+                      aria-label="Category select"
+                    >
+                      <option value="">Select category</option>
+                      {findCategory.map((item: Category) => (
+                        <option key={item._id} value={item._id}>
+                          {item.categoryName}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sub Category Description</FormLabel>
                   <FormControl>
                     <ReactQuill
                       theme="snow"
@@ -171,10 +240,10 @@ export function EditSubCategory() {
           <div className="w-full md:w-1/3 space-y-4">
             <FormField
               control={form.control}
-              name="category_image"
+              name="image"
               render={({ field }) => (
                 <FormItem className="space-y-2">
-                  <FormLabel>Category Image</FormLabel>
+                  <FormLabel>Sub Category Image</FormLabel>
                   <FormControl>
                     <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-blue-500 hover:bg-gray-50 transition">
                       <span className="text-gray-500 mb-2">
@@ -205,7 +274,7 @@ export function EditSubCategory() {
                         height={300}
                         src={preview}
                         alt="Preview"
-                        className="h-[275px] w-full object-cover rounded-md shadow-md border border-gray-200"
+                        className="h-[270px] w-full object-cover rounded-md shadow-md border border-gray-200"
                       />
                     </div>
                   )}
@@ -220,7 +289,7 @@ export function EditSubCategory() {
         <div className="flex justify-end">
           <Button
             type="submit"
-            className="w-full h-[50px] md:w-[33%] mt-5 cursor-pointer text-base"
+            className="w-full md:w-[33%] mt-5 h-[50px] text-base cursor-pointer"
           >
             Submit
           </Button>
