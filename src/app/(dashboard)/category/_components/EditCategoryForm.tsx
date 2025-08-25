@@ -98,6 +98,7 @@ export function EditCategoryForm() {
     },
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const newACategory = Acategory?.data || [];
   console.log(newACategory);
 
@@ -110,7 +111,7 @@ export function EditCategoryForm() {
       });
     }
     setPreview(newACategory?.image);
-  }, [newACategory]);
+  }, [form, newACategory]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const formData = new FormData();

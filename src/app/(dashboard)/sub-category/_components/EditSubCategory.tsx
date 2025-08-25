@@ -151,7 +151,6 @@ export function EditSubCategory() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left Side: Inputs */}
           <div className="flex-1 space-y-6">
-            {/* Category Name */}
             <FormField
               control={form.control}
               name="name"
@@ -175,7 +174,7 @@ export function EditSubCategory() {
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category Name</FormLabel>
+                  <FormLabel>Sub Category Name</FormLabel>
                   <FormControl>
                     <Select
                       className="h-[50px]"
@@ -195,7 +194,6 @@ export function EditSubCategory() {
               )}
             />
 
-            {/* Category Description */}
             <FormField
               control={form.control}
               name="description"

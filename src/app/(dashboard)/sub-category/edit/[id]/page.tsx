@@ -4,7 +4,7 @@ import { EditSubCategory } from '../../_components/EditSubCategory'
 function page() {
   return (
     <div>
-        <EditSubCategory />
+        <EditSubCategory/>
     </div>
   )
 }
