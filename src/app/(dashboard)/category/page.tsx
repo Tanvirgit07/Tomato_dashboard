@@ -1,10 +1,10 @@
 import React from 'react'
-import CategoeyList from './_components/CategoeyList'
+import CategoryList from './_components/CategoryList'
 
 function page() {
   return (
     <div>
-      <CategoeyList />
+        <CategoryList />
     </div>
   )
 }
