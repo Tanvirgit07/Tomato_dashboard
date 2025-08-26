@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -12,6 +11,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { Category } from "@/Types/categoryTypes";
+import Link from "next/link";
 
 function CategoryList() {
   const {
@@ -53,7 +54,21 @@ function CategoryList() {
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Categories</h2>
+      <div className="flex items-center justify-between mb-10">
+        <div>
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">Categories</h2>
+        </div>
+        <div className="mt-6 flex justify-center">
+          <Link href="/category/add">
+            <Button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
+            >
+              Add Category
+            </Button>
+          </Link>
+        </div>
+      </div>
 
       {categories.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
@@ -61,9 +76,7 @@ function CategoryList() {
         </div>
       ) : (
         <Table>
-          <TableCaption>
-            A list of all categories and their subcategories
-          </TableCaption>
+          {/* <TableCaption>A list of all categories and their subcategories</TableCaption> */}
           <TableHeader>
             <TableRow>
               <TableHead>Category Image</TableHead>
@@ -76,7 +89,7 @@ function CategoryList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {categories.map((category) => (
+            {categories.map((category: Category) => (
               <TableRow key={category._id}>
                 <TableCell>
                   <img
@@ -89,12 +102,7 @@ function CategoryList() {
                   {category.categoryName}
                 </TableCell>
                 <TableCell className="max-w-xs">
-                  <div
-                    className="truncate"
-                    title={category.categorydescription}
-                  >
-                    {category.categorydescription}
-                  </div>
+                  <div dangerouslySetInnerHTML={{__html: category?.categorydescription}}/>
                 </TableCell>
                 <TableCell>
                   {category.subCategory && category.subCategory.length > 0 ? (
@@ -134,15 +142,16 @@ function CategoryList() {
                 <TableCell className="text-sm text-gray-500">
                   {new Date(category.updatedAt).toLocaleDateString()}
                 </TableCell>
-                {/* ✅ Actions Column */}
                 <TableCell className="flex justify-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => console.log("Edit", category._id)}
-                  >
-                    Edit
-                  </Button>
+                  <Link href={`/category/edit/${category?._id}`}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => console.log("Edit", category._id)}
+                    >
+                      Edit
+                    </Button>
+                  </Link>
                   <Button
                     variant="destructive"
                     size="sm"
