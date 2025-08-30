@@ -1,6 +1,6 @@
 "use client";
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Table,
   TableBody,
@@ -10,11 +10,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import { Category } from "@/Types/categoryTypes";
 import Link from "next/link";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { DeleteModal } from "@/components/Modal/DeleteModal";
 
 function CategoryList() {
+  const [open, setOpen] = useState(false);
+  const [categoryId,setCategoryId] = useState<null | string>(null);
+  const queryClient = useQueryClient();
   const {
     data: response,
     isLoading,
@@ -33,6 +38,50 @@ function CategoryList() {
       return res.json();
     },
   });
+
+  const categoryDeleteMutation = useMutation({
+    mutationFn: async (categoryId: string) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/deletecategory/${categoryId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to delete category");
+      }
+
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message);
+      queryClient.invalidateQueries({queryKey: ['category']})
+    },
+    onError: (error) => {
+      toast.error(error?.message);
+    },
+  });
+
+  const handleDelete = (id: string) => {
+    setOpen(true)
+    setCategoryId(id);
+  };
+
+  const handleClose = () => {
+    setOpen(false)
+    setCategoryId(null)
+  }
+
+  const confirmDelete = () => {
+    if(categoryId){
+      categoryDeleteMutation.mutate(categoryId)
+    }
+    handleClose()
+  }
 
   if (isLoading) {
     return (
@@ -53,20 +102,29 @@ function CategoryList() {
   const categories = response?.data || [];
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-10">
-        <div>
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Categories</h2>
-        </div>
-        <div className="mt-6 flex justify-center">
-          <Link href="/category/add">
-            <Button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
-            >
-              Add Category
-            </Button>
-          </Link>
+    <div className="">
+      <div className="bg-white shadow-sm border-b border-gray-200 mb-10">
+        <div className="">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+                  Add New Category
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Create a new category for your products
+                </p>
+              </div>
+            </div>
+            <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
+              <Link href="/category/add">
+                <Button size="sm" className="ml-2">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Category
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -76,7 +134,6 @@ function CategoryList() {
         </div>
       ) : (
         <Table>
-          {/* <TableCaption>A list of all categories and their subcategories</TableCaption> */}
           <TableHeader>
             <TableRow>
               <TableHead>Category Image</TableHead>
@@ -102,39 +159,16 @@ function CategoryList() {
                   {category.categoryName}
                 </TableCell>
                 <TableCell className="max-w-xs">
-                  <div dangerouslySetInnerHTML={{__html: category?.categorydescription}}/>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: category?.categorydescription,
+                    }}
+                  />
                 </TableCell>
                 <TableCell>
-                  {category.subCategory && category.subCategory.length > 0 ? (
-                    <div className="space-y-2">
-                      {category.subCategory.map((sub) => (
-                        <div
-                          key={sub._id}
-                          className="flex items-center space-x-2 p-2 bg-gray-50 rounded-md"
-                        >
-                          <Image
-                            width={200}
-                            height={200}
-                            src={sub.image}
-                            alt={sub.name}
-                            className="w-8 h-8 object-cover rounded"
-                          />
-                          <div>
-                            <div className="font-medium text-sm">
-                              {sub.name}
-                            </div>
-                            <div className="text-xs text-gray-500 truncate max-w-32">
-                              {sub.description}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-gray-500 text-sm">
-                      No subcategories
-                    </span>
-                  )}
+                  {category?.subCategory.length
+                    ? category?.subCategory?.length
+                    : "0"}
                 </TableCell>
                 <TableCell className="text-sm text-gray-500">
                   {new Date(category.createdAt).toLocaleDateString()}
@@ -149,15 +183,16 @@ function CategoryList() {
                       size="sm"
                       onClick={() => console.log("Edit", category._id)}
                     >
-                      Edit
+                      <Pencil className="h-4 w-4" />
                     </Button>
                   </Link>
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => console.log("Delete", category._id)}
+                    className="cursor-pointer"
+                    onClick={() => handleDelete(category?._id)}
                   >
-                    Delete
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
@@ -165,6 +200,7 @@ function CategoryList() {
           </TableBody>
         </Table>
       )}
+      <DeleteModal open={open} onClose={handleClose} onConfirm={confirmDelete}/>
     </div>
   );
 }

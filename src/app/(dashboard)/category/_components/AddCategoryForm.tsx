@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,6 +23,7 @@ import "react-quill/dist/quill.snow.css";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Send } from "lucide-react";
 
 const formSchema = z.object({
   categoryName: z
@@ -92,7 +92,7 @@ export function AddCategoryForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column: Name + Description */}
-          <div className="flex-1 space-y-6">
+          <div className="w-[65%] space-y-6">
             <FormField
               control={form.control}
               name="categoryName"
@@ -100,7 +100,11 @@ export function AddCategoryForm() {
                 <FormItem>
                   <FormLabel>Category Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Category Name" {...field} />
+                    <Input
+                      placeholder="Category Name"
+                      className="h-[50px]"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -146,7 +150,7 @@ export function AddCategoryForm() {
                     <input
                       type="file"
                       accept="image/*"
-                      className="border border-gray-300 rounded px-3 py-2 w-full"
+                      className="border border-gray-300 rounded px-3 py-3 w-full"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         field.onChange(file);
@@ -155,24 +159,36 @@ export function AddCategoryForm() {
                     />
                   </FormControl>
                   <FormMessage />
-                  {preview && (
-                    <Image
-                      src={preview}
-                      width={300}
-                      height={300}
-                      alt="preview"
-                      className="mt-4 rounded border border-gray-200 object-cover"
-                    />
-                  )}
+                  <div className="mt-4 h-[268px] w-full rounded border-2 border-gray-300 flex items-center justify-center overflow-hidden">
+                    {preview ? (
+                      <Image
+                        src={preview}
+                        width={300}
+                        height={300}
+                        alt="preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-gray-400 text-sm">
+                        No image selected
+                      </span>
+                    )}
+                  </div>
                 </FormItem>
               )}
             />
           </div>
         </div>
 
-        <Button type="submit" className="mt-4">
-          Submit
-        </Button>
+        <div className="flex items-center justify-end">
+          <Button
+            type="submit"
+            className="mt-4 w-[120px] h-[50px] flex items-center gap-2"
+          >
+            <Send className="w-4 h-4" />
+            Submit
+          </Button>
+        </div>
       </form>
     </Form>
   );
