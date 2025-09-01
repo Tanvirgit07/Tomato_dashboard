@@ -31,15 +31,26 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Category } from "@/Types/categoryTypes";
+import { Category, SubCategory } from "@/Types/categoryTypes";
 
 const formSchema = z.object({
-  name: z
+  productName: z
     .string()
-    .min(2, { message: "Subcategory name must be at least 2 characters." }),
+    .min(2, { message: "Product name must be at least 2 characters." }),
+  price: z.preprocess(
+    (val) => Number(val),
+    z.number().min(0, "Price cannot be negative")
+  ),
+  discountPrice: z.preprocess(
+    (val) => Number(val),
+    z.number().min(0, "Discount cannot be negative")
+  ),
   categoryId: z
     .string()
     .min(1, { message: "Please select a parent category." }),
+  subCategoryId: z
+    .string()
+    .min(1, { message: "Please select a parent subcategory." }),
   description: z
     .string()
     .min(10, "Description must be at least 10 characters")
@@ -47,14 +58,18 @@ const formSchema = z.object({
   image: z.any().optional(),
 });
 
-export function AddSubCategoryForm() {
+export function AddProduct() {
   const [preview, setPreview] = useState<string | null>(null);
+  
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      productName: "",
+      price: 0,
+      discountPrice: 0,
       categoryId: "",
+      subCategoryId: "",
       description: "",
       image: null,
     },
@@ -67,49 +82,52 @@ export function AddSubCategoryForm() {
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/allcategory`
       );
       if (!res.ok) throw new Error("Failed to fetch categories");
-      return res.json(); // ✅ Return the data
+      return res.json();
     },
   });
 
-  const createsubCategoryMutation = useMutation({
+  const { data: subcategory } = useQuery({
+    queryKey: ["subcategory"],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/getallsubcategory`
+      );
+      if (!res.ok) throw new Error("Failed to fetch subcategories");
+      return res.json();
+    },
+  });
+
+  const createProductMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/addsubcategory`,
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/food/createfood`,
         {
           method: "POST",
           body: data,
         }
       );
-
       if (!res.ok) {
-        // Backend থেকে error এলে throw করব
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to create subcategory");
+        throw new Error(errorData.message || "Failed to create product");
       }
-
-      // সফল হলে data return করব
       return res.json();
     },
-    onSuccess: (data) => {
-      toast.success(data.message || "Subcategory created successfully");
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
+    onSuccess: (data) =>
+      toast.success(data.message || "Product created successfully"),
+    onError: (error) => toast.error(error.message),
   });
 
-  // ✅ Submit Handler
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Submitted Data:", values);
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
     const formData = new FormData();
-    formData.append("name", values.name);
-    formData.append("category", values.categoryId);
+    formData.append("name", values.productName);
+    formData.append("price", values.price.toString());
+    formData.append("discountPrice", values.discountPrice.toString());
+    formData.append("categoryId", values.categoryId);
+    formData.append("subCategoryId", values.subCategoryId);
     formData.append("description", values.description);
-    if (values.image) {
-      formData.append("image", values.image);
-    }
-    createsubCategoryMutation.mutate(formData);
-  }
+    if (values.image) formData.append("image", values.image);
+    createProductMutation.mutate(formData);
+  };
 
   return (
     <div className="">
@@ -117,7 +135,7 @@ export function AddSubCategoryForm() {
       <div className="flex items-center justify-between mb-10">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-            Sub Categories
+            Add Product
           </h1>
           <nav className="flex items-center text-sm text-gray-500 mt-2">
             <Link
@@ -127,29 +145,29 @@ export function AddSubCategoryForm() {
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-gray-900 font-medium">ADD Categories</span>
+            <span className="text-gray-900 font-medium">Add Product</span>
           </nav>
         </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <div className="flex jbetween gap-8">
+          <div className="flex justify-between gap-8">
             <div className="w-[60%] space-y-6">
-              {/* Subcategory Name */}
+              {/* Product Name */}
               <FormField
                 control={form.control}
-                name="name"
+                name="productName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="font-semibold">
-                      Subcategory Name
+                      Product Name
                     </FormLabel>
                     <FormControl>
                       <Input
-                        className="h-[50px]"
-                        placeholder="Enter subcategory name"
                         {...field}
+                        className="h-[50px]"
+                        placeholder="Enter product name"
                       />
                     </FormControl>
                     <FormMessage />
@@ -157,7 +175,55 @@ export function AddSubCategoryForm() {
                 )}
               />
 
-              {/* Description with ReactQuill */}
+              {/* Price */}
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">Price</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        className="h-[50px]"
+                        placeholder="Enter price"
+                        value={typeof field.value === "number" || typeof field.value === "string" ? field.value : ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Discount Price */}
+              <FormField
+                control={form.control}
+                name="discountPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">
+                      Discount Price (%)
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        className="h-[50px]"
+                        placeholder="Enter discount"
+                        value={
+                          typeof field.value === "number" || typeof field.value === "string"
+                            ? field.value
+                            : ""
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Description */}
               <FormField
                 control={form.control}
                 name="description"
@@ -173,7 +239,7 @@ export function AddSubCategoryForm() {
                             theme="snow"
                             value={field.value}
                             onChange={field.onChange}
-                            placeholder="Write subcategory description..."
+                            placeholder="Write product description..."
                             className="min-h-[300px]"
                           />
                         )}
@@ -186,7 +252,7 @@ export function AddSubCategoryForm() {
             </div>
 
             <div className="flex-1 space-y-6">
-              {/* Parent Category Select */}
+              {/* Parent Category */}
               <FormField
                 control={form.control}
                 name="categoryId"
@@ -198,7 +264,10 @@ export function AddSubCategoryForm() {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="!h-[50px] w-full">
-                          <SelectValue className="text-base" placeholder="Select a category" />
+                          <SelectValue
+                            placeholder="Select a category"
+                            className="text-base"
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -213,7 +282,39 @@ export function AddSubCategoryForm() {
                   </FormItem>
                 )}
               />
-              {/* Image Upload with Preview */}
+
+              {/* Subcategory */}
+              <FormField
+                control={form.control}
+                name="subCategoryId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">
+                      Parent Subcategory
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="!h-[50px] w-full">
+                          <SelectValue
+                            placeholder="Select a subcategory"
+                            className="text-base"
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {subcategory?.data?.map((sub: SubCategory) => (
+                          <SelectItem key={sub._id} value={sub._id}>
+                            {sub.name}
+                          </SelectItem>
+                        )) || <p>No subcategories found</p>}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Image Upload */}
               <FormField
                 control={form.control}
                 name="image"
@@ -235,12 +336,12 @@ export function AddSubCategoryForm() {
                       />
                     </FormControl>
                     {preview && (
-                      <div className="w-full h-[268px] relative">
+                      <div className="w-full h-[365px] relative mt-4">
                         <Image
                           src={preview}
                           alt="preview"
                           fill
-                          className="mt-4 rounded border border-gray-200 object-cover"
+                          className="rounded border border-gray-200 object-cover"
                         />
                       </div>
                     )}
@@ -257,7 +358,7 @@ export function AddSubCategoryForm() {
               type="submit"
               className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg shadow-md"
             >
-              Save Subcategory
+              Save Product
             </Button>
           </div>
         </form>

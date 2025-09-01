@@ -87,7 +87,9 @@ export function EditSubCategoryForm() {
   });
 
   // Fetch categories for select
-  const { data: categories, isLoading: categoriesLoading } = useQuery<Category[]>({
+  const { data: categories, isLoading: categoriesLoading } = useQuery<
+    Category[]
+  >({
     queryKey: ["categories"],
     queryFn: async () => {
       const res = await fetch(
@@ -101,9 +103,14 @@ export function EditSubCategoryForm() {
 
   // Reset form when both subcategory and categories data are loaded
   useEffect(() => {
-    if (subCategory && categories && !categoriesLoading && categories.length > 0) {
+    if (
+      subCategory &&
+      categories &&
+      !categoriesLoading &&
+      categories.length > 0
+    ) {
       const categoryId = subCategory.category?._id || "";
-      
+
       // Use setTimeout to ensure the Select component is ready
       setTimeout(() => {
         form.setValue("name", subCategory.name);
@@ -111,16 +118,25 @@ export function EditSubCategoryForm() {
         form.setValue("description", subCategory.description);
         form.setValue("image", null);
       }, 100);
-      
+
       setPreview(subCategory.image || null);
     }
   }, [subCategory, categories, categoriesLoading, form]);
+  // useEffect(() => {
+  //   form.reset({
+  //     name: subCategory?.name || "",
+  //     categoryId: subCategory?.category?._id || "",
+  //     description: subCategory?.description || "",
+  //     image: null,
+  //   });
+  //   setPreview(subCategory?.image || null);
+  // }, [subCategory, form]);
 
   // Mutation to update subcategory
   const updateSubCategoryMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/editsubcategory/${id}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/updatesubcategory/${id}`,
         {
           method: "PUT",
           body: formData,
@@ -132,9 +148,12 @@ export function EditSubCategoryForm() {
       }
       return res.json();
     },
-    onSuccess: (data) =>
-      toast.success(data.message || "Subcategory updated successfully"),
-    onError: (error) => toast.error(error.message),
+    onSuccess: (data) => {
+      toast.success(data.message || "Subcategory updated successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
   });
 
   // Submit handler
@@ -306,7 +325,9 @@ export function EditSubCategoryForm() {
               className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg shadow-md"
               disabled={updateSubCategoryMutation.isPending}
             >
-              {updateSubCategoryMutation.isPending ? "Updating..." : "Update Subcategory"}
+              {updateSubCategoryMutation.isPending
+                ? "Updating..."
+                : "Update Subcategory"}
             </Button>
           </div>
         </form>
