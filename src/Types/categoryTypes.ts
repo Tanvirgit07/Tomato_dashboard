@@ -19,3 +19,10 @@ export interface Category {
   updatedAt: string;
   __v: number;
 }
+
+
+export  interface ApiResponse {
+  success: boolean;
+  count: number;
+  data: Category[];
+}

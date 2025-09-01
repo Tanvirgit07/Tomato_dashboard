@@ -24,6 +24,7 @@ import "react-quill/dist/quill.snow.css";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Save } from "lucide-react";
 
 const formSchema = z.object({
   categoryName: z
@@ -92,7 +93,7 @@ export function AddCategoryForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column: Name + Description */}
-          <div className="flex-1 space-y-6">
+          <div className="w-[60%] space-y-6">
             <FormField
               control={form.control}
               name="categoryName"
@@ -100,7 +101,11 @@ export function AddCategoryForm() {
                 <FormItem>
                   <FormLabel>Category Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Category Name" {...field} />
+                    <Input
+                      className="h-[50px]"
+                      placeholder="Category Name"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -146,7 +151,7 @@ export function AddCategoryForm() {
                     <input
                       type="file"
                       accept="image/*"
-                      className="border border-gray-300 rounded px-3 py-2 w-full"
+                      className="border border-gray-300 rounded px-3 py-3 w-full"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         field.onChange(file);
@@ -156,13 +161,14 @@ export function AddCategoryForm() {
                   </FormControl>
                   <FormMessage />
                   {preview && (
-                    <Image
-                      src={preview}
-                      width={300}
-                      height={300}
-                      alt="preview"
-                      className="mt-4 rounded border border-gray-200 object-cover"
-                    />
+                    <div className="w-full h-[268px] relative">
+                      <Image
+                        src={preview}
+                        alt="preview"
+                        fill
+                        className="mt-4 rounded border border-gray-200 object-cover"
+                      />
+                    </div>
                   )}
                 </FormItem>
               )}
@@ -170,9 +176,15 @@ export function AddCategoryForm() {
           </div>
         </div>
 
-        <Button type="submit" className="mt-4">
-          Submit
-        </Button>
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            className="mt-4 text-base cursor-pointer w-[120px] h-[50px] flex items-center justify-center gap-2"
+          >
+            <Save className="!w-5.5 !h-5.5 mr-1" />
+            Save
+          </Button>
+        </div>
       </form>
     </Form>
   );
