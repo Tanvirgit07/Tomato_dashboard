@@ -55,7 +55,7 @@ const formSchema = z.object({
   description: z
     .string()
     .min(10, "Description must be at least 10 characters")
-    .max(500, "Description must not exceed 500 characters"),
+    .max(1000, "Description must not exceed 500 characters"),
   image: z.any().optional(),
   subImages: z
     .any()
