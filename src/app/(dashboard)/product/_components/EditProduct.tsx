@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { string, z } from "zod";
+import { z } from "zod";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
@@ -30,6 +30,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Category, SubCategory } from "@/Types/categoryTypes";
 import { useParams } from "next/navigation";
 
@@ -56,10 +57,18 @@ const formSchema = z.object({
     .min(10, "Description must be at least 10 characters")
     .max(500, "Description must not exceed 500 characters"),
   image: z.any().optional(),
+  subImages: z
+    .any()
+    .optional()
+    .refine(
+      (files) => !files || files.length <= 5,
+      "You can upload up to 5 additional images."
+    ),
 });
 
 export function EditProduct() {
   const [preview, setPreview] = useState<string | null>(null);
+  const [additionalPreviews, setAdditionalPreviews] = useState<string[]>([]);
   const params = useParams();
   const id = params.id;
 
@@ -73,6 +82,7 @@ export function EditProduct() {
       subCategoryId: "",
       description: "",
       image: null,
+      subImages: null,
     },
   });
 
@@ -109,8 +119,26 @@ export function EditProduct() {
     },
   });
 
+  useEffect(() => {
+    if (productData?.data && category?.data && subcategory?.data) {
+      form.reset({
+        productName: productData.data.name || "",
+        price: productData.data.price || 0,
+        discountPrice: productData.data.discountPrice || 0,
+        categoryId: String(productData.data.category?._id || ""),
+        subCategoryId: String(productData.data.subCategory?._id || ""),
+        description: productData.data.description || "",
+        image: null,
+        subImages: null,
+      });
+      setPreview(productData.data.image || null);
+      setAdditionalPreviews(
+        productData.data.subImages?.map((img: { url: string }) => img.url) || []
+      );
+    }
+  }, [productData, category, subcategory, form]);
 
-  const createProductMutation = useMutation({
+  const updateProductMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/food/updatefood/${id}`,
@@ -119,59 +147,34 @@ export function EditProduct() {
           body: data,
         }
       );
-
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || "Failed to update product");
       }
-
       return res.json();
     },
-    onSuccess: (data) => {
-      console.log("Product updated successfully:", data);
-    },
-    onError: (error) => {
-      console.error("Error updating product:", error);
-    },
+    onSuccess: (data) =>
+      toast.success(data.message || "Product updated successfully"),
+    onError: (error) => toast.error(error.message),
   });
 
-  useEffect(() => {
-  if (productData?.data && category?.data && subcategory?.data) {
-    form.reset({
-      productName: productData.data.name || "",
-      price: productData.data.price || 0,
-      discountPrice: productData.data.discountPrice || 0,
-      categoryId: String(productData.data.category?._id || ""),
-      subCategoryId: String(productData.data.subCategory?._id || ""),
-      description: productData.data.description || "",
-      image: null,
-    });
-    setPreview(productData.data.image || null);
-  }
-}, [productData, category, subcategory, form]);
-
-
-
-
-
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-  const formData = new FormData();
-
-  // Field names must match what the backend expects
-  formData.append("name", values.productName);
-  formData.append("price", values.price.toString());
-  formData.append("discountPrice", values.discountPrice.toString());
-  formData.append("categoryId", values.categoryId);
-  formData.append("subCategoryId", values.subCategoryId);
-  formData.append("description", values.description);
-
-  // Only append the file if a new one is selected
-  if (values.image) {
-    formData.append("image", values.image); // Multer should use upload.single("image")
-  }
-
-  createProductMutation.mutate(formData);
-};
+    const formData = new FormData();
+    formData.append("name", values.productName);
+    formData.append("price", values.price.toString());
+    formData.append("discountPrice", values.discountPrice.toString());
+    formData.append("categoryId", values.categoryId);
+    formData.append("subCategoryId", values.subCategoryId);
+    formData.append("description", values.description);
+    if (values.image) formData.append("image", values.image);
+    if (values.subImages) {
+      const files = Array.from(values.subImages as FileList); // cast to FileList
+      files.forEach((file) => {
+        formData.append("subImages", file); // append multiple files under same key
+      });
+    }
+    updateProductMutation.mutate(formData);
+  };
 
   return (
     <div className="">
@@ -179,7 +182,7 @@ export function EditProduct() {
       <div className="flex items-center justify-between mb-10">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-            Add Product
+            Edit Product
           </h1>
           <nav className="flex items-center text-sm text-gray-500 mt-2">
             <Link
@@ -189,7 +192,7 @@ export function EditProduct() {
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-gray-900 font-medium">Add Product</span>
+            <span className="text-gray-900 font-medium">Edit Product</span>
           </nav>
         </div>
       </div>
@@ -311,7 +314,7 @@ export function EditProduct() {
                     <FormLabel className="font-semibold">
                       Parent Category
                     </FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="!h-[50px] w-full">
                           <SelectValue
@@ -322,7 +325,7 @@ export function EditProduct() {
                       </FormControl>
                       <SelectContent>
                         {category?.data?.map((cat: Category) => (
-                          <SelectItem key={cat._id} value={String(cat._id)}>
+                          <SelectItem key={cat._id} value={cat._id}>
                             {cat.categoryName}
                           </SelectItem>
                         )) || <p>No categories found</p>}
@@ -342,7 +345,7 @@ export function EditProduct() {
                     <FormLabel className="font-semibold">
                       Parent Subcategory
                     </FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="!h-[50px] w-full">
                           <SelectValue
@@ -353,7 +356,7 @@ export function EditProduct() {
                       </FormControl>
                       <SelectContent>
                         {subcategory?.data?.map((sub: SubCategory) => (
-                          <SelectItem key={sub._id} value={String(sub._id)}>
+                          <SelectItem key={sub._id} value={sub._id}>
                             {sub.name}
                           </SelectItem>
                         )) || <p>No subcategories found</p>}
@@ -364,14 +367,14 @@ export function EditProduct() {
                 )}
               />
 
-              {/* Image Upload */}
+              {/* Primary Image Upload */}
               <FormField
                 control={form.control}
                 name="image"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="font-semibold">
-                      Upload Image
+                      Primary Image
                     </FormLabel>
                     <FormControl>
                       <input
@@ -393,6 +396,55 @@ export function EditProduct() {
                           fill
                           className="rounded border border-gray-200 object-cover"
                         />
+                      </div>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Additional Images Upload */}
+              <FormField
+                control={form.control}
+                name="subImages"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">
+                      Additional Images (up to 5)
+                    </FormLabel>
+                    <FormControl>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="border border-gray-300 rounded px-3 py-3 w-full"
+                        onChange={(e) => {
+                          const files = e.target.files;
+                          if (files) {
+                            field.onChange(files);
+                            const previews = Array.from(files)
+                              .slice(0, 5)
+                              .map((file) => URL.createObjectURL(file));
+                            setAdditionalPreviews(previews);
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    {additionalPreviews.length > 0 && (
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        {additionalPreviews.map((src, index) => (
+                          <div
+                            key={index}
+                            className="w-full h-[180px] relative"
+                          >
+                            <Image
+                              src={src}
+                              alt={`additional-preview-${index}`}
+                              fill
+                              className="rounded border border-gray-200 object-cover"
+                            />
+                          </div>
+                        ))}
                       </div>
                     )}
                     <FormMessage />

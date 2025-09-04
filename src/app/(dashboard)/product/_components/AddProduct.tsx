@@ -56,11 +56,18 @@ const formSchema = z.object({
     .min(10, "Description must be at least 10 characters")
     .max(500, "Description must not exceed 500 characters"),
   image: z.any().optional(),
+  subImages: z
+    .any()
+    .optional()
+    .refine(
+      (files) => !files || files.length <= 5,
+      "You can upload up to 5 additional images."
+    ),
 });
 
 export function AddProduct() {
   const [preview, setPreview] = useState<string | null>(null);
-  
+  const [additionalPreviews, setAdditionalPreviews] = useState<string[]>([]);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -72,6 +79,7 @@ export function AddProduct() {
       subCategoryId: "",
       description: "",
       image: null,
+      subImages: null,
     },
   });
 
@@ -100,7 +108,7 @@ export function AddProduct() {
   const createProductMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/food/createfood`,
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/food/careatefood`,
         {
           method: "POST",
           body: data,
@@ -125,7 +133,16 @@ export function AddProduct() {
     formData.append("categoryId", values.categoryId);
     formData.append("subCategoryId", values.subCategoryId);
     formData.append("description", values.description);
+
     if (values.image) formData.append("image", values.image);
+
+    if (values.subImages) {
+      const files = Array.from(values.subImages as FileList);
+      files.forEach((file) => {
+        formData.append("subImages", file);
+      });
+    }
+
     createProductMutation.mutate(formData);
   };
 
@@ -188,7 +205,12 @@ export function AddProduct() {
                         type="number"
                         className="h-[50px]"
                         placeholder="Enter price"
-                        value={typeof field.value === "number" || typeof field.value === "string" ? field.value : ""}
+                        value={
+                          typeof field.value === "number" ||
+                          typeof field.value === "string"
+                            ? field.value
+                            : ""
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -212,7 +234,8 @@ export function AddProduct() {
                         className="h-[50px]"
                         placeholder="Enter discount"
                         value={
-                          typeof field.value === "number" || typeof field.value === "string"
+                          typeof field.value === "number" ||
+                          typeof field.value === "string"
                             ? field.value
                             : ""
                         }
@@ -314,14 +337,14 @@ export function AddProduct() {
                 )}
               />
 
-              {/* Image Upload */}
+              {/* Primary Image Upload */}
               <FormField
                 control={form.control}
                 name="image"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="font-semibold">
-                      Upload Image
+                      Primary Image
                     </FormLabel>
                     <FormControl>
                       <input
@@ -335,16 +358,79 @@ export function AddProduct() {
                         }}
                       />
                     </FormControl>
-                    {preview && (
-                      <div className="w-full h-[365px] relative mt-4">
+
+                    {/* Always show bordered preview box */}
+                    <div className="w-full h-[365px] border border-gray-300 rounded mt-4 relative flex items-center justify-center bg-gray-50">
+                      {preview ? (
                         <Image
                           src={preview}
                           alt="preview"
                           fill
-                          className="rounded border border-gray-200 object-cover"
+                          className="rounded object-cover"
                         />
-                      </div>
-                    )}
+                      ) : (
+                        <span className="text-gray-400 text-center">
+                          Preview will appear here
+                        </span>
+                      )}
+                    </div>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Additional Images Upload */}
+              <FormField
+                control={form.control}
+                name="subImages"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">
+                      Additional Images (up to 5)
+                    </FormLabel>
+                    <FormControl>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="border border-gray-300 rounded px-3 py-3 w-full"
+                        onChange={(e) => {
+                          const files = e.target.files;
+                          if (files) {
+                            field.onChange(files);
+                            const previews = Array.from(files)
+                              .slice(0, 5)
+                              .map((file) => URL.createObjectURL(file));
+                            setAdditionalPreviews(previews);
+                          }
+                        }}
+                      />
+                    </FormControl>
+
+                    {/* Always show bordered preview boxes */}
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className="w-full h-[180px] border border-gray-300 rounded relative flex items-center justify-center bg-gray-50"
+                        >
+                          {additionalPreviews[index] ? (
+                            <Image
+                              src={additionalPreviews[index]}
+                              alt={`additional-preview-${index}`}
+                              fill
+                              className="rounded object-cover"
+                            />
+                          ) : (
+                            <span className="text-gray-400 text-center">
+                              Preview {index + 1}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
                     <FormMessage />
                   </FormItem>
                 )}
