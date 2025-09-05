@@ -42,6 +42,10 @@ const formSchema = z.object({
     (val) => Number(val),
     z.number().min(0, "Price cannot be negative")
   ),
+  stock: z.preprocess(
+  (val) => (val === "" ? undefined : Number(val)),
+  z.number().min(0, "Stock cannot be negative")
+),
   discountPrice: z.preprocess(
     (val) => Number(val),
     z.number().min(0, "Discount cannot be negative")
@@ -83,6 +87,7 @@ export function EditProduct() {
       description: "",
       image: null,
       subImages: null,
+      stock: 0
     },
   });
 
@@ -124,6 +129,7 @@ export function EditProduct() {
       form.reset({
         productName: productData.data.name || "",
         price: productData.data.price || 0,
+        stock: productData.data.stock || 0,
         discountPrice: productData.data.discountPrice || 0,
         categoryId: String(productData.data.category?._id || ""),
         subCategoryId: String(productData.data.subCategory?._id || ""),
@@ -166,6 +172,7 @@ export function EditProduct() {
     formData.append("categoryId", values.categoryId);
     formData.append("subCategoryId", values.subCategoryId);
     formData.append("description", values.description);
+    formData.append("stock", values.stock.toString());
     if (values.image) formData.append("image", values.image);
     if (values.subImages) {
       const files = Array.from(values.subImages as FileList); // cast to FileList
@@ -275,6 +282,35 @@ export function EditProduct() {
                   </FormItem>
                 )}
               />
+
+
+
+               {/* Price */}
+              <FormField
+                control={form.control}
+                name="stock"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">Stock Product</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        className="h-[50px]"
+                        placeholder="Enter stock"
+                        value={
+                          typeof field.value === "number" ||
+                          typeof field.value === "string"
+                            ? field.value
+                            : ""
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
 
               {/* Description */}
               <FormField
