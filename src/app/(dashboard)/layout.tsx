@@ -10,7 +10,9 @@ function layout({ children }: { children: React.ReactNode }) {
       <div className="flex">
         <Sidebar />
         <div className="w-full mt-[80px] p-6">
-          <AppProvider>{children}</AppProvider>
+          <AppProvider>
+            {children}
+            </AppProvider>
         </div>
       </div>
     </>

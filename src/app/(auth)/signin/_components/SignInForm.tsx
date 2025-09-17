@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, ChangeEvent, FormEvent } from "react";
@@ -7,13 +8,22 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
+import { signIn } from "next-auth/react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react"; // 👈 new import
+
 interface FormData {
   email: string;
   password: string;
   rememberMe: boolean;
 }
 
-const SignInForm = () => {
+const LoginForm = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // 👈 state for toggle
+  const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -28,9 +38,28 @@ const SignInForm = () => {
     }));
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log("Sign In Data:", formData);
+    try {
+      setIsLoading(true);
+
+      const res = await signIn("credentials", {
+        email: formData?.email,
+        password: formData?.password,
+        redirect: false,
+      });
+
+      if (res?.error) {
+        throw new Error(res?.error);
+      }
+
+      toast.success("Login Successfully !");
+      router.push("/");
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -77,6 +106,7 @@ const SignInForm = () => {
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email */}
               <div>
                 <Label htmlFor="email" className="text-base font-medium">
                   Email Address
@@ -93,22 +123,37 @@ const SignInForm = () => {
                 />
               </div>
 
+              {/* Password with eye toggle */}
               <div>
                 <Label htmlFor="password" className="text-base font-medium">
                   Password
                 </Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  className="h-[51px] border border-[#272727] mt-2"
-                />
+                <div className="relative mt-2">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    className="h-[51px] border border-[#272727] pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
               </div>
 
+              {/* Remember + Forgot */}
               <div className="flex items-center justify-between mt-2 pb-7">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -127,20 +172,32 @@ const SignInForm = () => {
                   </Label>
                 </div>
 
+                <Link href="/forgot-password">
                 <button
                   type="button"
                   className="text-sm text-red-500 hover:text-red-700 transition"
                 >
                   Forgot Password?
                 </button>
+                </Link>
               </div>
 
+              {/* Submit */}
               <Button
                 type="submit"
+                disabled={isLoading}
                 className="w-full text-base h-[51px] bg-[#EF1A26] hover:bg-[#ee5e65] text-white py-2 rounded-md transition"
               >
-                Login
+                {isLoading ? "Sign In..." : "Sign in "}
               </Button>
+
+              {/* Sign up link */}
+              <p className="text-xs text-gray-500 mt-1 text-center">
+                Don’t have an account?{" "}
+                <Link href="/signup" className="text-red-600 hover:underline">
+                  Sign up
+                </Link>
+              </p>
             </form>
           </CardContent>
         </div>
@@ -149,4 +206,4 @@ const SignInForm = () => {
   );
 };
 
-export default SignInForm;
+export default LoginForm;
