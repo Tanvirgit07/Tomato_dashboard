@@ -23,7 +23,7 @@ const navigation = [
   { name: "Main Category", href: "/category", icon: Grip },
   { name: "Sub Category", href: "/sub-category", icon: ShoppingBasket },
   { name: "Order", href: "/orders", icon: ShoppingCart },
-  { name: "Fabric", href: "/fabric", icon: FileText },
+  { name: "Offers", href: "/offer", icon: FileText },
   // { name: "Message", href: "/message", icon: MessageSquare },
   { name: "Style", href: "/style", icon: Scissors },
   {
