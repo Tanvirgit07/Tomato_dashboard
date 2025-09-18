@@ -25,7 +25,7 @@ const navigation = [
   { name: "Order", href: "/orders", icon: ShoppingCart },
   { name: "Offers", href: "/offer", icon: FileText },
   // { name: "Message", href: "/message", icon: MessageSquare },
-  { name: "Style", href: "/style", icon: Scissors },
+  { name: "Requested Seller", href: "/requested-seller", icon: Scissors },
   {
     name: "Accents",
     href: "/accents",
