@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, ChevronRight } from "lucide-react";
+import { Trash2, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import Loading from "@/components/Shear/Loading";
 import { DeleteModal } from "@/components/Modal/DeleteModal";
@@ -13,49 +14,92 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 
 const statusOptions = ["pending", "approved", "rejected"];
 
 const RequestedSellerList: React.FC = () => {
-  const {
-    data: response,
-    isLoading,
-    isError,
-    refetch,
-  } = useQuery({
+  const queryClient = useQueryClient();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const adminId = user?.id;
+
+  const { data: response, isLoading, isError } = useQuery({
     queryKey: ["seller"],
     queryFn: async () => {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/seller/get-seller`
-      );
-
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/seller/get-seller`);
       if (!res.ok) throw new Error("Failed to fetch sellers");
       return res.json();
     },
   });
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
+  const requestedMutation = useMutation({
+    mutationFn: async (sellerId: string) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/seller/deleteSellerrequest/${sellerId}`,
+        { method: "DELETE", headers: { "Content-Type": "application/json" } }
+      );
+      if (!res.ok) throw new Error("Failed to delete seller");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || "Seller deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["seller"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Something went wrong!");
+    },
+  });
+
+  const sellerUpdateMutation = useMutation({
+    mutationFn: async (bodyData: { status: string; userId: string; email: string }) => {
+      if (!bodyData.userId) throw new Error("Seller ID missing");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/seller/becomesellerstatus/${bodyData.userId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bodyData),
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to update seller status");
+      }
+
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || "Seller status updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["seller"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Something went wrong!");
+    },
+  });
 
   const handleDeleteClick = (sellerId: string) => {
     setSelectedSellerId(sellerId);
     setDeleteModalOpen(true);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (!selectedSellerId) return;
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/seller/delete/${selectedSellerId}`,
-        { method: "DELETE", headers: { "Content-Type": "application/json" } }
-      );
-      if (!res.ok) throw new Error("Failed to delete seller");
-      setDeleteModalOpen(false);
-      setSelectedSellerId(null);
-      refetch();
-    } catch (error) {
-      console.error(error);
-    }
+    requestedMutation.mutate(selectedSellerId);
+    setDeleteModalOpen(false);
+    setSelectedSellerId(null);
+  };
+
+  const handleStatusChange = (seller: any, newStatus: string) => {
+    sellerUpdateMutation.mutate({
+      status: newStatus,
+      userId: seller._id, // seller's unique ID
+      email: seller.email,
+    });
   };
 
   if (isLoading) return <Loading />;
@@ -63,9 +107,7 @@ const RequestedSellerList: React.FC = () => {
     return (
       <div className="bg-gray-50 min-h-screen flex justify-center items-center">
         <div className="text-center">
-          <div className="text-red-500 text-xl font-semibold mb-2">
-            ⚠️ Error loading sellers
-          </div>
+          <div className="text-red-500 text-xl font-semibold mb-2">⚠️ Error loading sellers</div>
           <p className="text-gray-600">Please try refreshing the page</p>
         </div>
       </div>
@@ -74,13 +116,11 @@ const RequestedSellerList: React.FC = () => {
   const sellers = response?.sellers || [];
 
   return (
-    <div className="">
+    <div>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-            Requested Sellers
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Requested Sellers</h1>
           <nav className="flex items-center text-sm text-gray-500 mt-2">
             <Link href="/dashboard" className="hover:text-gray-700 transition-colors">
               Dashboard
@@ -111,9 +151,7 @@ const RequestedSellerList: React.FC = () => {
           {sellers.map((seller: any, index: number) => (
             <div
               key={seller._id}
-              className={`grid grid-cols-12 gap-4 px-6 py-5 hover:bg-gray-50 ${
-                index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
-              }`}
+              className={`grid grid-cols-12 gap-4 px-6 py-5 hover:bg-gray-50 ${index % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}
             >
               {/* Seller Info */}
               <div className="col-span-3 flex items-center gap-4">
@@ -131,9 +169,13 @@ const RequestedSellerList: React.FC = () => {
 
               {/* Products */}
               <div className="col-span-1 flex items-center justify-center">{seller.products}</div>
+
               {/* Status */}
               <div className="col-span-2 flex items-center justify-center">
-                <Select defaultValue={seller.status}>
+                <Select
+                  defaultValue={seller.status}
+                  onValueChange={(value) => handleStatusChange(seller, value)}
+                >
                   <SelectTrigger className="w-32">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
@@ -147,25 +189,13 @@ const RequestedSellerList: React.FC = () => {
 
               {/* Website */}
               <div className="col-span-2 flex items-center justify-center">
-                <Link
-                  href={seller.website}
-                  target="_blank"
-                  className="text-blue-600 hover:underline text-sm truncate max-w-[150px]"
-                >
-                  {seller.website}
-                </Link>
+                <Link href={seller.website} target="_blank" className="text-blue-600 hover:underline text-sm truncate max-w-[150px]">{seller.website}</Link>
               </div>
 
               {/* Colors */}
               <div className="col-span-1 flex items-center justify-center gap-1">
-                <div
-                  className="w-6 h-6 rounded-full border"
-                  style={{ backgroundColor: seller.color }}
-                />
-                <div
-                  className="w-6 h-6 rounded-full border"
-                  style={{ backgroundColor: seller.lightColor }}
-                />
+                <div className="w-6 h-6 rounded-full border" style={{ backgroundColor: seller.color }} />
+                <div className="w-6 h-6 rounded-full border" style={{ backgroundColor: seller.lightColor }} />
               </div>
 
               {/* Actions */}
@@ -173,8 +203,9 @@ const RequestedSellerList: React.FC = () => {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="border-red-200 text-red-600 hover:bg-red-50 rounded-lg"
-                  onClick={() => handleDeleteClick(seller._id)}
+                  className={`rounded-lg ${seller.status === "approved" ? "border-gray-200 text-gray-400 cursor-not-allowed opacity-50" : "border-red-200 text-red-600 hover:bg-red-50"}`}
+                  onClick={() => seller.status !== "approved" && handleDeleteClick(seller._id)}
+                  disabled={seller.status === "approved"}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -185,11 +216,7 @@ const RequestedSellerList: React.FC = () => {
       </div>
 
       {/* Delete Modal */}
-      <DeleteModal
-        open={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={confirmDelete}
-      />
+      <DeleteModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} onConfirm={confirmDelete} />
     </div>
   );
 };
