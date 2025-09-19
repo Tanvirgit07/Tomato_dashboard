@@ -24,8 +24,7 @@ const RequestedSellerList: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
   const { data: session } = useSession();
-  const user = session?.user as any;
-  const adminId = user?.id;
+  console.log(session)
 
   const { data: response, isLoading, isError } = useQuery({
     queryKey: ["seller"],

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextAuthOptions } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -35,34 +34,37 @@ export const authOptions: NextAuthOptions = {
           );
 
           const response = await res.json();
-          console.log("🔎 API Response:", response);
+          console.log("Backend login response:", response);
 
-          // ❌ আগে ছিল: response?.status
-          // ✅ ঠিক হবে: response?.success
           if (!res.ok || !response?.success) {
             throw new Error(response?.message || "Login failed");
           }
 
-          // ❌ আগে ছিল: const { user, accessToken } = response.data;
-          // ✅ ঠিক হবে:
-          const { id, name, role, email, phonNumber } = response.data;
-          const accessToken = response.accessToken;
+          // Safely get user object
+          const user = response.data?.user || response.data;
+          if (!user) throw new Error("User data not found");
+
+          if (user.role !== "admin") {
+            throw new Error("Only non-admin users can access this page");
+          }
+
+          // Access token could be inside response.data or response.accessToken
+          const accessToken = response.data?.accessToken || response.accessToken || null;
 
           return {
-            id,
-            name,
-            email,
-            role,
-            phoneNumber: phonNumber, // backend spelling অনুযায়ী phonNumber
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            phoneNumber: user.phoneNumber || null,
+            role: user.role,
+            profileImage: user.profileImage || null,
             accessToken,
           };
         } catch (error) {
           console.error("Authentication error:", error);
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : "Authentication failed. Please try again.";
-          throw new Error(errorMessage);
+          const message =
+            error instanceof Error ? error.message : "Authentication failed";
+          throw new Error(message);
         }
       },
     }),
@@ -74,8 +76,9 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
-        token.role = user.role;
         token.phoneNumber = user.phoneNumber;
+        token.role = user.role;
+        token.profileImage = user.profileImage;
         token.accessToken = user.accessToken;
       }
       return token;
@@ -86,8 +89,9 @@ export const authOptions: NextAuthOptions = {
         id: token.id,
         name: token.name,
         email: token.email,
-        role: token.role,
         phoneNumber: token.phoneNumber,
+        role: token.role,
+        profileImage: token.profileImage,
         accessToken: token.accessToken,
       };
       return session;
