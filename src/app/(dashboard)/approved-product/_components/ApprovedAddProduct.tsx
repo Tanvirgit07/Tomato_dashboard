@@ -32,6 +32,7 @@ import { ChevronRight } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Category, SubCategory } from "@/Types/categoryTypes";
+import { useSession } from "next-auth/react";
 
 const formSchema = z.object({
   productName: z
@@ -69,9 +70,13 @@ const formSchema = z.object({
     ),
 });
 
-export function AddProduct() {
+export function ApprovedAddProduct() {
   const [preview, setPreview] = useState<string | null>(null);
   const [additionalPreviews, setAdditionalPreviews] = useState<string[]>([]);
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const token = user?.accessToken;
+  console.log(token);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -84,7 +89,7 @@ export function AddProduct() {
       description: "",
       image: null,
       subImages: null,
-      stock: 0
+      stock: 0,
     },
   });
 
@@ -116,6 +121,9 @@ export function AddProduct() {
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/food/careatefood`,
         {
           method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`, // Content-Type দেওয়া যাবে না
+          },
           body: data,
         }
       );
@@ -258,7 +266,9 @@ export function AddProduct() {
                 name="stock"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">Stock Products</FormLabel>
+                    <FormLabel className="font-semibold">
+                      Stock Products
+                    </FormLabel>
                     <FormControl>
                       <Input
                         {...field}

@@ -23,15 +23,20 @@ type FoodItem = {
     name: string;
   };
   createdAt: string;
+  status?: string;
 };
 
-function ProductList() {
+function ApprovedProductList() {
   const queryClient = useQueryClient();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Fetch food items
-  const { data: response, isLoading, isError } = useQuery({
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["food-items"],
     queryFn: async () => {
       const res = await fetch(
@@ -43,6 +48,11 @@ function ProductList() {
   });
 
   const foodItems: FoodItem[] = response?.data || [];
+
+  // ✅ Filter only approved products
+  const approvedFoodItems = foodItems.filter(
+    (item) => item.status === "approved"
+  );
 
   // Delete mutation
   const deleteProductMutation = useMutation<
@@ -65,7 +75,7 @@ function ProductList() {
     },
     onSuccess: (data) => {
       toast.success(data.message || "Food item deleted successfully");
-      queryClient.invalidateQueries({queryKey: ["food-items"]});
+      queryClient.invalidateQueries({ queryKey: ["food-items"] });
       setDeleteModalOpen(false);
       setSelectedId(null);
     },
@@ -119,7 +129,7 @@ function ProductList() {
             <span className="text-gray-900 font-medium">Food Items</span>
           </nav>
         </div>
-        <Link href="/product/add">
+        <Link href="/approved-product/add">
           <Button className="bg-red-500 hover:bg-red-600 text-white px-8 h-[50px] rounded-lg font-semibold shadow-lg flex items-center gap-2">
             <Plus className="!w-7 !h-7" />
             Add Product
@@ -128,13 +138,13 @@ function ProductList() {
       </div>
 
       {/* Main content */}
-      {foodItems.length === 0 ? (
+      {approvedFoodItems.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 text-center py-10 mt-10">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No food items found
+            No approved food items found
           </h3>
           <p className="text-gray-500 mb-6">
-            Get started by creating your first food item
+            Only approved products will show here
           </p>
           <Link href="/product/add">
             <Button className="bg-red-500 hover:bg-red-600 text-white px-6 rounded-lg flex items-center gap-2">
@@ -148,17 +158,23 @@ function ProductList() {
           {/* Table Header */}
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
             <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center">
-              <div className="col-span-3 text-xs font-semibold text-gray-600 uppercase">
+              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase">
                 Food
               </div>
-              <div className="col-span-3 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
                 Category
               </div>
-              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase text-center">
                 Price
               </div>
-              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase text-center">
                 Discount
+              </div>
+              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+                Status
+              </div>
+              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+                Role
               </div>
               <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
                 Actions
@@ -168,7 +184,7 @@ function ProductList() {
 
           {/* Table Body */}
           <div className="divide-y divide-gray-100">
-            {foodItems.map((item, index) => (
+            {approvedFoodItems.map((item:any, index) => (
               <div
                 key={item._id}
                 className={`grid grid-cols-12 gap-4 px-6 py-5 items-center hover:bg-gray-50 ${
@@ -176,7 +192,7 @@ function ProductList() {
                 }`}
               >
                 {/* Food Info */}
-                <div className="col-span-3 flex items-center gap-4">
+                <div className="col-span-2 flex items-center gap-4">
                   <Image
                     width={56}
                     height={56}
@@ -195,20 +211,38 @@ function ProductList() {
                 </div>
 
                 {/* Category */}
-                <div className="col-span-3 flex items-center justify-center text-center">
+                <div className="col-span-2 flex items-center justify-center text-center">
                   <span className="text-gray-700 font-medium">
                     {item.category?.name || "N/A"}
                   </span>
                 </div>
 
                 {/* Price */}
-                <div className="col-span-2 flex items-center justify-center text-center">
-                  <span className="text-gray-700 font-medium">${item.price}</span>
+                <div className="col-span-1 flex items-center justify-center text-center">
+                  <span className="text-gray-700 font-medium">
+                    ${item.price}
+                  </span>
                 </div>
 
                 {/* Discount */}
+                <div className="col-span-1 flex items-center justify-center text-center">
+                  <span className="text-gray-700 font-medium">
+                    {item.discountPrice}%
+                  </span>
+                </div>
+
+                {/* Status */}
                 <div className="col-span-2 flex items-center justify-center text-center">
-                  <span className="text-gray-700 font-medium">{item.discountPrice}%</span>
+                  <span className="text-gray-700 font-medium">
+                    {item.status}
+                  </span>
+                </div>
+
+                {/* Role */}
+                <div className="col-span-2 flex items-center justify-center text-center">
+                  <span className="text-gray-700 font-medium">
+                    {item.user.role}
+                  </span>
                 </div>
 
                 {/* Actions */}
@@ -247,4 +281,4 @@ function ProductList() {
   );
 }
 
-export default ProductList;
+export default ApprovedProductList;
