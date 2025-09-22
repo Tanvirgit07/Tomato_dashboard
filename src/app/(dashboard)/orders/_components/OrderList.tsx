@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Trash2, ChevronRight } from "lucide-react";
+import { Trash2, ChevronRight, Edit, Eye } from "lucide-react";
 import Loading from "@/components/Shear/Loading";
 import { DeleteModal } from "@/components/Modal/DeleteModal";
+import { OrderDialog } from "@/components/Shear/OrderDiolog";
 
 type OrderProduct = {
   _id: string;
@@ -126,7 +127,7 @@ function OrderList() {
               <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
                 Customer
               </div>
-              <div className="col-span-4 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
                 Products
               </div>
               <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase text-center">
@@ -137,6 +138,9 @@ function OrderList() {
               </div>
               <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
                 Created At
+              </div>
+              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+                Actions
               </div>
             </div>
           </div>
@@ -164,21 +168,18 @@ function OrderList() {
                   </span>
                 </div>
 
-                {/* Products */}
-                <div className="col-span-4 flex flex-col gap-1">
-                  {order.products.map((p) => (
-                    <div key={p._id} className="text-sm text-gray-600 flex justify-between">
-                      <span className="font-medium">{p.name}</span>
-                      <span>
-                        {p.quantity} × ${p.price}
-                      </span>
-                    </div>
-                  ))}
+                {/* Products (only count) */}
+                <div className="col-span-2 flex items-center justify-center">
+                  <span className="text-sm text-gray-600">
+                    {order.products.length} product(s)
+                  </span>
                 </div>
 
                 {/* Amount */}
                 <div className="col-span-1 flex items-center justify-center">
-                  <span className="text-gray-900 font-semibold">${order.amount}</span>
+                  <span className="text-gray-900 font-semibold">
+                    ${order.amount}
+                  </span>
                 </div>
 
                 {/* Status */}
@@ -201,6 +202,19 @@ function OrderList() {
                   <span className="text-sm text-gray-600">
                     {formatDate(order.createdAt)}
                   </span>
+                </div>
+
+                {/* Actions */}
+                <div className="col-span-2 flex items-center justify-center gap-3">
+                  <OrderDialog orderId={order._id} />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="border-red-200 text-red-600 hover:bg-red-50 rounded-lg"
+                    onClick={() => handleDeleteClick(order._id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             ))}

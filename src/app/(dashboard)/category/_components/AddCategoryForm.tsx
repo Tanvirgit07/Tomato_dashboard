@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Save } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 const formSchema = z.object({
   categoryName: z
@@ -44,6 +45,10 @@ const formSchema = z.object({
 
 export function AddCategoryForm() {
   const [preview, setPreview] = useState<string | null>(null);
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const token = user?.accessToken;
+  console.log(token);
 
   // Cleanup preview URL to prevent memory leaks
   useEffect(() => {
@@ -69,6 +74,10 @@ export function AddCategoryForm() {
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/addcategory`,
         {
           method: "POST",
+          headers: {
+            // "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // 🔑 এখানে token পাঠানো হচ্ছে
+          },
           body: bodyData,
         }
       );
