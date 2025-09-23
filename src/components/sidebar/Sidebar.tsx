@@ -39,8 +39,8 @@ const navigation = [
   // { name: "Message", href: "/message", icon: MessageSquare },
   { name: "Requested Seller", href: "/requested-seller", icon: Scissors },
   {
-    name: "Accents",
-    href: "/accents",
+    name: "Blog Management",
+    href: "/blog",
     icon: DollarSign,
   },
 ];
