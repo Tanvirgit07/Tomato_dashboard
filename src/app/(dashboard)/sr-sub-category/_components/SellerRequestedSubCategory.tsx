@@ -1,13 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, ChevronRight, Plus } from "lucide-react";
 import Loading from "@/components/Shear/Loading";
 import { DeleteModal } from "@/components/Modal/DeleteModal";
+import { toast } from "sonner";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useSession } from "next-auth/react";
 
 type SubCategory = {
   _id: string;
@@ -33,7 +44,11 @@ type SubCategory = {
   __v: number;
 };
 
-function SubCategoryList() {
+function SellerRequestedSubCategory() {
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const token = user?.accessToken;
+
   const {
     data: response,
     isLoading,
@@ -89,6 +104,38 @@ function SubCategoryList() {
       day: "2-digit",
     });
 
+  const subCategories: SubCategory[] =
+    response?.data?.filter(
+      (sub: SubCategory) =>
+        sub.status === "pending" || sub.status === "rejected"
+    ) || [];
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      console.log("Updating status for:", id, status);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/updatesubcategorystatus/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed to update status");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Status updated successfully");
+      refetch();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to update status");
+    },
+  });
+
   if (isLoading) return <Loading />;
   if (isError)
     return (
@@ -101,11 +148,6 @@ function SubCategoryList() {
         </div>
       </div>
     );
-
-  // ✅ শুধু approved subcategories filter করা হলো
-  const subCategories: SubCategory[] =
-    response?.data?.filter((sub: SubCategory) => sub.status === "approved") ||
-    [];
 
   return (
     <div>
@@ -121,12 +163,6 @@ function SubCategoryList() {
             <span className="text-gray-900 font-medium">Subcategories</span>
           </nav>
         </div>
-        <Link href="/sub-category/add">
-          <Button className="bg-red-500 hover:bg-red-600 text-white px-8 h-[50px] rounded-lg font-semibold shadow-lg flex items-center gap-2">
-            <Plus className="!w-7 !h-7" />
-            Add Subcategory
-          </Button>
-        </Link>
       </div>
 
       {/* Main content */}
@@ -162,7 +198,10 @@ function SubCategoryList() {
               <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
                 Updated At
               </div>
-              <div className="col-span-3 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+                Status
+              </div>
+              <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase text-center">
                 Actions
               </div>
             </div>
@@ -217,8 +256,30 @@ function SubCategoryList() {
                   </span>
                 </div>
 
+                {/* Status Select */}
+                <div className="col-span-2 flex items-center justify-center">
+                  <Select
+                    value={sub.status}
+                    onValueChange={(value) =>
+                      updateStatusMutation.mutate({
+                        id: sub._id,
+                        status: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Actions */}
-                <div className="col-span-3 flex items-center justify-center gap-3">
+                <div className="col-span-1 flex items-center justify-center gap-3">
                   <Link href={`/sub-category/edit/${sub._id}`}>
                     <Button
                       variant="outline"
@@ -253,4 +314,4 @@ function SubCategoryList() {
   );
 }
 
-export default SubCategoryList;
+export default SellerRequestedSubCategory;

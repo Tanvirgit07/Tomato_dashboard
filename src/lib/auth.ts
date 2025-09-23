@@ -71,6 +71,7 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async jwt({ token, user }: { token: JWT; user?: any }) {
       if (user) {
         token.id = user.id;
@@ -84,6 +85,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session, token }: { session: any; token: JWT }) {
       session.user = {
         id: token.id,

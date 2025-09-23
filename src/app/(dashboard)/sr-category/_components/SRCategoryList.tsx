@@ -1,22 +1,28 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, ChevronRight, Plus } from "lucide-react";
+import { Edit, Trash2, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import Loading from "@/components/Shear/Loading";
-import { ApiResponse, Category } from "@/Types/categoryTypes";
 import { DeleteModal } from "@/components/Modal/DeleteModal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const CategoryList: React.FC = () => {
+const SRCategoryList: React.FC = () => {
   const {
     data: response,
     isLoading,
     isError,
     refetch,
-  } = useQuery<ApiResponse>({
+  } = useQuery({
     queryKey: ["category"],
     queryFn: async () => {
       const res = await fetch(
@@ -36,7 +42,28 @@ const CategoryList: React.FC = () => {
     null
   );
 
-  // Helper function to strip HTML tags from description
+  // 🔹 Mutation for status change
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/category/update-status/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed to update status");
+      return res.json();
+    },
+    onSuccess: () => {
+      refetch();
+    },
+  });
+
+  // Helper function to strip HTML tags
   const stripHtml = (html: string) => {
     if (typeof window === "undefined") return html;
     const temp = document.createElement("div");
@@ -99,10 +126,11 @@ const CategoryList: React.FC = () => {
       </div>
     );
 
-  // ✅ Only approved categories
-  const categories = (response?.data || []).filter(
-    (cat: any) => cat.status === "approved"
-  );
+  // 🔹 Filter only pending & rejected
+  const categories =
+    response?.data.filter(
+      (cat: any) => cat.status === "pending" || cat.status === "rejected"
+    ) || [];
 
   return (
     <div className="">
@@ -110,7 +138,7 @@ const CategoryList: React.FC = () => {
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-            Categories
+            Requested Category
           </h1>
           <nav className="flex items-center text-sm text-gray-500 mt-2">
             <Link
@@ -123,12 +151,28 @@ const CategoryList: React.FC = () => {
             <span className="text-gray-900 font-medium">Categories</span>
           </nav>
         </div>
-        <Link href="/category/add">
-          <Button className="bg-red-500 cursor-pointer text-base hover:bg-red-600 text-white px-8 h-[50px] rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2">
-            <Plus className="!w-7 !h-7" />
-            Add Category
-          </Button>
-        </Link>
+        <div className="flex items-center gap-6">
+          <div>
+            <Select>
+              <SelectTrigger className="w-[180px] !h-[50px]">
+                <SelectValue placeholder="Theme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+                <SelectItem value="system">System</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {/* <div>
+            <Link href="/category/add">
+              <Button className="bg-red-500 cursor-pointer text-base hover:bg-red-600 text-white px-8 h-[50px] rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2">
+                <Plus className="!w-7 !h-7" />
+                Add Category
+              </Button>
+            </Link>
+          </div> */}
+        </div>
       </div>
 
       {/* Main Content */}
@@ -136,24 +180,15 @@ const CategoryList: React.FC = () => {
         {categories.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 text-center py-10">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No approved categories found
+              No pending/rejected categories
             </h3>
-            <p className="text-gray-500 mb-6">
-              Get started by creating your first category
-            </p>
-            <Link href="/category/add">
-              <Button className="bg-red-500 hover:bg-red-600 text-white px-6 rounded-lg">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Category
-              </Button>
-            </Link>
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mt-10">
             {/* Table Header */}
             <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
               <div className="grid grid-cols-12 gap-6 px-6 py-4">
-                <div className="col-span-4 text-xs font-semibold text-gray-600 uppercase">
+                <div className="col-span-3 text-xs font-semibold text-gray-600 uppercase">
                   Category Name
                 </div>
                 <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
@@ -162,7 +197,10 @@ const CategoryList: React.FC = () => {
                 <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
                   Date Added
                 </div>
-                <div className="col-span-4 text-xs font-semibold text-gray-600 uppercase text-center">
+                <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+                  Status
+                </div>
+                <div className="col-span-3 text-xs font-semibold text-gray-600 uppercase text-center">
                   Actions
                 </div>
               </div>
@@ -170,7 +208,7 @@ const CategoryList: React.FC = () => {
 
             {/* Table Body */}
             <div className="divide-y divide-gray-100">
-              {categories.map((category: Category, index) => (
+              {categories.map((category: any, index: any) => (
                 <div
                   key={category._id}
                   className={`grid grid-cols-12 gap-6 px-6 py-5 hover:bg-gray-50 ${
@@ -178,7 +216,7 @@ const CategoryList: React.FC = () => {
                   }`}
                 >
                   {/* Category Name */}
-                  <div className="col-span-4 flex items-center gap-4">
+                  <div className="col-span-3 flex items-center gap-4">
                     <Image
                       width={56}
                       height={56}
@@ -218,8 +256,30 @@ const CategoryList: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Status */}
+                  <div className="col-span-2 flex items-center justify-center">
+                    <Select
+                      onValueChange={(value) =>
+                        updateStatusMutation.mutate({
+                          id: category._id,
+                          status: value,
+                        })
+                      }
+                      defaultValue={category.status}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="approved">Approved</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* Actions */}
-                  <div className="col-span-4 flex items-center justify-center gap-3">
+                  <div className="col-span-3 flex items-center justify-center gap-3">
                     <Link href={`/category/edit/${category._id}`}>
                       <Button
                         variant="outline"
@@ -255,4 +315,4 @@ const CategoryList: React.FC = () => {
   );
 };
 
-export default CategoryList;
+export default SRCategoryList;

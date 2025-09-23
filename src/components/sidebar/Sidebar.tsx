@@ -19,10 +19,21 @@ import Image from "next/image";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Requested Products", href: "/requested-product", icon: LayoutDashboard },
-  { name: "Approved Products", href: "/approved-product", icon: LayoutDashboard },
+  {
+    name: "Requested Products",
+    href: "/requested-product",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Approved Products",
+    href: "/approved-product",
+    icon: LayoutDashboard,
+  },
   { name: "Main Category", href: "/category", icon: Grip },
   { name: "Sub Category", href: "/sub-category", icon: ShoppingBasket },
+  { name: "SR Category List", href: "/sr-category", icon: ShoppingBasket },
+  { name: "SR Sub Category List", href: "/sr-sub-category", icon: ShoppingBasket },
+
   { name: "Order", href: "/orders", icon: ShoppingCart },
   { name: "Offers", href: "/offer", icon: FileText },
   // { name: "Message", href: "/message", icon: MessageSquare },
@@ -53,7 +64,8 @@ export function Sidebar() {
           </div>
           <div>
             <h1 className="text-green-500">
-              T<span className="text-red-400">O</span>MAT<span className="text-red-400">O</span>
+              T<span className="text-red-400">O</span>MAT
+              <span className="text-red-400">O</span>
             </h1>
             <p className="text-white text-[10px]">Tomaot.LID</p>
           </div>
@@ -61,7 +73,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-6 flex flex-col items-center justify-start px-3 overflow-y-auto mt-3">
+      <nav className="flex-1 space-y-4 flex flex-col items-center justify-start px-3 overflow-y-auto mt-3">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href ||
