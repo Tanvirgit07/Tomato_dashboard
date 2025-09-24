@@ -202,7 +202,7 @@ function SellerRequestedSubCategory() {
                 Status
               </div>
               <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase text-center">
-                Actions
+                Actions 
               </div>
             </div>
           </div>

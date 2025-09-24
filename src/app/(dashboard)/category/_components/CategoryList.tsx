@@ -162,8 +162,8 @@ const CategoryList: React.FC = () => {
                 <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
                   Date Added
                 </div>
-                <div className="col-span-4 text-xs font-semibold text-gray-600 uppercase text-center">
-                  Actions
+                <div className="col-span-4 text-xs font-semibold text-gray-600 uppercase text-end">
+                  <span className="mr-14">Actions</span>
                 </div>
               </div>
             </div>
@@ -219,7 +219,7 @@ const CategoryList: React.FC = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="col-span-4 flex items-center justify-center gap-3">
+                  <div className="col-span-4 flex items-center justify-end gap-3 mr-10">
                     <Link href={`/category/edit/${category._id}`}>
                       <Button
                         variant="outline"

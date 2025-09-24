@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -218,7 +219,7 @@ export function AddCategoryForm() {
           <div className="flex justify-end">
             <Button
               type="submit"
-              className="mt-4 text-base cursor-pointer w-[120px] h-[50px] flex items-center justify-center gap-2"
+              className="mt-4 text-base bg-red-500 cursor-pointer hover:bg-red-600 w-[120px] h-[50px] flex items-center justify-center gap-2"
             >
               <Save className="!w-5.5 !h-5.5 mr-1" />
               Save
