@@ -8,6 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Loading from "@/components/Shear/Loading";
 import { DeleteModal } from "@/components/Modal/DeleteModal";
+import { toast } from "sonner";
 
 const BlogList: React.FC = () => {
   const {
@@ -28,13 +29,7 @@ const BlogList: React.FC = () => {
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
-
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteClick = (blogId: string) => {
     setSelectedBlogId(blogId);
@@ -43,17 +38,24 @@ const BlogList: React.FC = () => {
 
   const confirmDelete = async () => {
     if (!selectedBlogId) return;
+    setIsDeleting(true);
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/blog/deleteblog/${selectedBlogId}`,
         { method: "DELETE", headers: { "Content-Type": "application/json" } }
       );
+
       if (!res.ok) throw new Error("Failed to delete blog");
+
+      toast.success("Blog deleted successfully");
       setDeleteModalOpen(false);
       setSelectedBlogId(null);
       refetch();
     } catch (error) {
+      toast.error("Failed to delete blog");
       console.error(error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -189,6 +191,7 @@ const BlogList: React.FC = () => {
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={confirmDelete}
+        // isDeleting={isDeleting}
       />
     </div>
   );
