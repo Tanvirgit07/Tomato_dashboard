@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
@@ -247,7 +248,7 @@ function ApprovedProductList() {
 
                 {/* Actions */}
                 <div className="col-span-2 flex items-center justify-center gap-3">
-                  <Link href={`/product/edit/${item._id}`}>
+                  <Link href={`/approved-product/edit/${item._id}`}>
                     <Button
                       variant="outline"
                       size="icon"

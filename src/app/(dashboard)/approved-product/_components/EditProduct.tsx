@@ -56,10 +56,7 @@ const formSchema = z.object({
   subCategoryId: z
     .string()
     .min(1, { message: "Please select a parent subcategory." }),
-  description: z
-    .string()
-    .min(10, "Description must be at least 10 characters")
-    .max(1000, "Description must not exceed 500 characters"),
+  description: z.string(),
   image: z.any().optional(),
   subImages: z
     .any()
