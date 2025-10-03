@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Trash2, ChevronRight, Edit, Eye } from "lucide-react";
+import { Trash2, ChevronRight } from "lucide-react";
 import Loading from "@/components/Shear/Loading";
 import { DeleteModal } from "@/components/Modal/DeleteModal";
 import { OrderDialog } from "@/components/Shear/OrderDiolog";
@@ -16,12 +16,18 @@ type OrderProduct = {
   price: number;
 };
 
+type User = {
+  name?: string;
+  email?: string;
+};
+
 type Order = {
   _id: string;
-  userId: { name?: string; email?: string } | null;
+  userId: User | null;
   products: OrderProduct[];
   amount: number;
-  status: string;
+  status: "pending" | "paid" | "failed" | string;
+  deliveryStatus: "pending" | "shipped" | "delivered" | string;
   checkoutSessionId: string;
   createdAt: string;
   updatedAt: string;
@@ -120,33 +126,36 @@ function OrderList() {
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mt-10">
           {/* Table Header */}
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-            <div className="grid grid-cols-12 gap-6 px-6 py-4">
-              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase">
-                Order ID
+            <div className="grid grid-cols-12 gap-6 px-6 py-4 text-center">
+              <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase">
+                ID
               </div>
-              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase">
                 Customer
               </div>
-              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase">
                 Products
               </div>
-              <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase">
                 Amount
               </div>
-              <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase">
                 Status
               </div>
-              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase">
+                Delivery
+              </div>
+              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase">
                 Created At
               </div>
-              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase">
                 Actions
               </div>
             </div>
           </div>
 
           {/* Table Body */}
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 text-center">
             {orders.map((order, index) => (
               <div
                 key={order._id}
@@ -155,9 +164,9 @@ function OrderList() {
                 }`}
               >
                 {/* Order ID */}
-                <div className="col-span-2 flex items-center">
+                <div className="col-span-1 flex items-center justify-center">
                   <span className="text-gray-900 font-medium truncate">
-                    {order._id}
+                    {order._id.slice(0, 5)}
                   </span>
                 </div>
 
@@ -168,7 +177,7 @@ function OrderList() {
                   </span>
                 </div>
 
-                {/* Products (only count) */}
+                {/* Products */}
                 <div className="col-span-2 flex items-center justify-center">
                   <span className="text-sm text-gray-600">
                     {order.products.length} product(s)
@@ -194,6 +203,23 @@ function OrderList() {
                     }`}
                   >
                     {order.status}
+                  </span>
+                </div>
+
+                {/* Delivery Status */}
+                <div className="col-span-1 flex items-center justify-center">
+                  <span
+                    className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                      order.deliveryStatus === "pending"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : order.deliveryStatus === "shipped"
+                        ? "bg-blue-100 text-blue-800"
+                        : order.deliveryStatus === "delivered"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {order.deliveryStatus || "N/A"}
                   </span>
                 </div>
 

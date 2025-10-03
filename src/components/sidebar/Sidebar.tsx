@@ -32,12 +32,17 @@ const navigation = [
   { name: "Main Category", href: "/category", icon: Grip },
   { name: "Sub Category", href: "/sub-category", icon: ShoppingBasket },
   { name: "SR Category List", href: "/sr-category", icon: ShoppingBasket },
-  { name: "SR Sub Category List", href: "/sr-sub-category", icon: ShoppingBasket },
+  {
+    name: "SR Sub Category List",
+    href: "/sr-sub-category",
+    icon: ShoppingBasket,
+  },
 
   { name: "Order", href: "/orders", icon: ShoppingCart },
   { name: "Offers", href: "/offer", icon: FileText },
   // { name: "Message", href: "/message", icon: MessageSquare },
   { name: "Requested Seller", href: "/requested-seller", icon: Scissors },
+
   {
     name: "Blog Management",
     href: "/blog",
