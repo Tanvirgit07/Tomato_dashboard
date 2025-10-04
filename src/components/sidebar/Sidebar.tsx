@@ -12,6 +12,7 @@ import {
   Grip,
   ShoppingBasket,
   Scissors,
+  MessageSquare,
   // Bell,
 } from "lucide-react";
 import Image from "next/image";
@@ -40,7 +41,7 @@ const navigation = [
 
   { name: "Order", href: "/orders", icon: ShoppingCart },
   { name: "Offers", href: "/offer", icon: FileText },
-  // { name: "Message", href: "/message", icon: MessageSquare },
+  { name: "Requested Boy", href: "/rquested-boy", icon: MessageSquare },
   { name: "Requested Seller", href: "/requested-seller", icon: Scissors },
 
   {
