@@ -10,6 +10,10 @@ import {
 } from "@/components/ui/dialog";
 
 type DeleteModalProps = {
+
+
+
+  
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
