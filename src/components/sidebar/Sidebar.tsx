@@ -57,7 +57,7 @@ export function Sidebar() {
   return (
     <div className="flex h-screen sticky bottom-0 top-0 w-[350px] flex-col bg-[#212121] z-50">
       {/* Logo */}
-      <div className="h-[80px] flex items-center justify-start shadow-md ml-3">
+      <div className="h-[80px] flex items-center justify-start ml-3">
         <div className="text-2xl flex gap-1 font-bold text-blue-600 uppercase tracking-wider">
           <div className="h-[50px] w-[50px]">
             <Image
@@ -79,7 +79,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-4 flex flex-col items-center justify-start px-3 overflow-y-auto mt-3">
+      <nav className="flex-1 space-y-2 flex flex-col items-center justify-start px-3 overflow-y-auto mt-3">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -116,10 +116,10 @@ export function Sidebar() {
       </nav>
 
       {/* Logout fixed at bottom */}
-      <div className="p-3">
-        <div className="flex items-center justify-start space-y-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-slate-600/50 hover:text-white cursor-pointer">
+      <div className="p-6">
+        <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-slate-600/50 hover:text-white cursor-pointer">
           <LogOut className="h-5 w-5" />
-          <span className="font-normal text-base leading-[120%]">Log Out</span>
+          <span className="font-normal text-base leading-none">Log Out</span>
         </div>
       </div>
     </div>
