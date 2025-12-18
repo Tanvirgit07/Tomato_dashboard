@@ -1,12 +1,9 @@
-import { Button } from "@/components/ui/button";
 import React from "react";
-
+import TotalDashbaord from "./_components/TotalDashbaord";
 function page() {
   return (
-    <div className="">
-      <div className="">
-        <Button>Button</Button>
-      </div>
+    <div>
+      <TotalDashbaord />
     </div>
   );
 }
