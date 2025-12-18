@@ -32,17 +32,21 @@ const formSchema = z.object({
   categoryName: z
     .string()
     .min(2, { message: "Category name must be at least 2 characters." }),
+
   categorydescription: z
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(200, "Description must not exceed 200 characters"),
+
   image: z
-    .instanceof(File)
+    .any()
     .optional()
-    .refine((file) => !file || file.type.startsWith("image/"), {
-      message: "Only image files are allowed",
-    }),
+    .refine(
+      (file) => !file || (file instanceof File && file.type.startsWith("image/")),
+      { message: "Only image files are allowed" }
+    ),
 });
+
 
 export function AddCategoryForm() {
   const [preview, setPreview] = useState<string | null>(null);
