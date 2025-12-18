@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
@@ -110,7 +111,7 @@ function ProductList() {
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/food/foodstatusupdate/${id}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json", },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status }),
         }
       );
@@ -167,13 +168,17 @@ function ProductList() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900">Food Items</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Requested Products
+          </h1>
           <nav className="flex items-center text-sm text-gray-500 mt-2">
             <Link href="/dashboard" className="hover:text-gray-700">
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-gray-900 font-medium">Food Items</span>
+            <span className="text-gray-900 font-medium">
+              Requested Products
+            </span>
           </nav>
         </div>
         <div className="flex items-center gap-5">
@@ -183,7 +188,7 @@ function ProductList() {
               value={selectedStatus}
               onValueChange={(value) => setSelectedStatus(value)}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[150px] h-[40px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -195,8 +200,8 @@ function ProductList() {
           </div>
           <div>
             <Link href="/approved-product/add">
-              <Button className="bg-red-500 hover:bg-red-600 text-white px-8 h-[50px] rounded-lg font-semibold shadow-lg flex items-center gap-2">
-                <Plus className="!w-7 !h-7" />
+              <Button className="bg-red-500 hover:bg-red-600 text-white h-[40px] w-[150px] rounded-lg font-semibold shadow-lg flex items-center gap-2">
+                <Plus className="!w-5 !h-5" />
                 Add Product
               </Button>
             </Link>
@@ -206,19 +211,24 @@ function ProductList() {
 
       {/* Main content */}
       {foodItems.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 text-center py-10 mt-10">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No food items found
-          </h3>
-          <p className="text-gray-500 mb-6">
-            Only {selectedStatus} products will show here
-          </p>
-          <Link href="/product/add">
-            <Button className="bg-red-500 hover:bg-red-600 text-white px-6 rounded-lg flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Add Food Item
-            </Button>
-          </Link>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 mt-10">
+          <div className="flex flex-col items-center justify-center text-center max-w-md mx-auto">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4">
+              <Plus className="w-10 h-10 text-red-500" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No food items found
+            </h3>
+            <p className="text-gray-500 mb-6">
+              Only {selectedStatus} products will show here
+            </p>
+            <Link href="/product/add">
+              <Button className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg inline-flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
+                <Plus className="w-5 h-5" />
+                Add Food Item
+              </Button>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mt-10">
@@ -329,7 +339,7 @@ function ProductList() {
 
                 {/* Actions */}
                 <div className="col-span-2 flex items-center justify-center gap-3">
-                  <Link href={`/product/edit/${item._id}`}>
+                  <Link href={`/approved-product/edit/${item._id}`}>
                     <Button
                       variant="outline"
                       size="icon"

@@ -25,11 +25,11 @@ const navigation = [
     href: "/requested-product",
     icon: LayoutDashboard,
   },
-  {
-    name: "Approved Products",
-    href: "/approved-product",
-    icon: LayoutDashboard,
-  },
+  // {
+  //   name: "Approved Products",
+  //   href: "/approved-product",
+  //   icon: LayoutDashboard,
+  // },
   { name: "Main Category", href: "/category", icon: Grip },
   { name: "Sub Category", href: "/sub-category", icon: ShoppingBasket },
   { name: "SR Category List", href: "/sr-category", icon: ShoppingBasket },
