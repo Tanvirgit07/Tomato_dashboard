@@ -134,7 +134,7 @@ export function AddCategoryForm() {
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-gray-900 font-medium">Edit Categories</span>
+            <span className="text-gray-900 font-medium">ADD Categories</span>
           </nav>
         </div>
       </div>
@@ -223,7 +223,7 @@ export function AddCategoryForm() {
           <div className="flex justify-end">
             <Button
               type="submit"
-              className="mt-4 text-base bg-red-500 cursor-pointer hover:bg-red-600 w-[120px] h-[50px] flex items-center justify-center gap-2"
+              className="mt-4 w-[120px] h-[45px] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
               <Save className="!w-5.5 !h-5.5 mr-1" />
               Save

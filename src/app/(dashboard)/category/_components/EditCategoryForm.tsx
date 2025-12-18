@@ -236,7 +236,7 @@ export function EditCategoryForm() {
           <div className="flex items-center justify-end">
             <Button
               type="submit"
-              className="mt-4 w-[120px] h-[50px] flex items-center gap-2"
+              className="mt-4 w-[120px] h-[45px] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
               <Send className="w-4 h-4" />
               Submit

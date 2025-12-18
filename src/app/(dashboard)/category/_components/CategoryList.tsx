@@ -110,7 +110,7 @@ const CategoryList: React.FC = () => {
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-            Categories
+           Main Categories
           </h1>
           <nav className="flex items-center text-sm text-gray-500 mt-2">
             <Link
@@ -120,12 +120,12 @@ const CategoryList: React.FC = () => {
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-gray-900 font-medium">Categories</span>
+            <span className="text-gray-900 font-medium">Main Categories</span>
           </nav>
         </div>
         <Link href="/category/add">
-          <Button className="bg-red-500 cursor-pointer text-base hover:bg-red-600 text-white px-8 h-[50px] rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2">
-            <Plus className="!w-7 !h-7" />
+          <Button className="bg-red-500 cursor-pointer text-base hover:bg-red-600 text-white px-8 h-[40px] w-[180px] rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2">
+            <Plus className="!w-6 !h-6" />
             Add Category
           </Button>
         </Link>

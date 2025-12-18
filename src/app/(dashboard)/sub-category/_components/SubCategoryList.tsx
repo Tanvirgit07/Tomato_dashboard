@@ -112,18 +112,18 @@ function SubCategoryList() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900">Subcategories</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Sub Categories</h1>
           <nav className="flex items-center text-sm text-gray-500 mt-2">
             <Link href="/dashboard" className="hover:text-gray-700">
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-gray-900 font-medium">Subcategories</span>
+            <span className="text-gray-900 font-medium">Sub Categories</span>
           </nav>
         </div>
         <Link href="/sub-category/add">
-          <Button className="bg-red-500 hover:bg-red-600 text-white px-8 h-[50px] rounded-lg font-semibold shadow-lg flex items-center gap-2">
-            <Plus className="!w-7 !h-7" />
+          <Button className="bg-red-500 hover:bg-red-600 text-white px-8 h-[40px] w-[180px] rounded-lg font-semibold shadow-lg flex items-center gap-2">
+            <Plus className="!w-6 !h-6" />
             Add Subcategory
           </Button>
         </Link>
