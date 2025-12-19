@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, ChevronRight, Plus } from "lucide-react";
+import { Edit, Trash2, ChevronRight } from "lucide-react";
 import Loading from "@/components/Shear/Loading";
 import { DeleteModal } from "@/components/Modal/DeleteModal";
 import { toast } from "sonner";
@@ -68,6 +68,9 @@ function SellerRequestedSubCategory() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  // 🔹 Top filter state
+  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected">("pending");
+
   const handleDeleteClick = (id: string) => {
     setSelectedId(id);
     setDeleteModalOpen(true);
@@ -104,15 +107,12 @@ function SellerRequestedSubCategory() {
       day: "2-digit",
     });
 
+  // 🔹 Filter subcategories based on top filter
   const subCategories: SubCategory[] =
-    response?.data?.filter(
-      (sub: SubCategory) =>
-        sub.status === "pending" || sub.status === "rejected"
-    ) || [];
+    response?.data?.filter((sub: SubCategory) => sub.status === statusFilter) || [];
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      console.log("Updating status for:", id, status);
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/updatesubcategorystatus/${id}`,
         {
@@ -152,7 +152,7 @@ function SellerRequestedSubCategory() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900">Subcategories</h1>
           <nav className="flex items-center text-sm text-gray-500 mt-2">
@@ -160,27 +160,32 @@ function SellerRequestedSubCategory() {
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-gray-900 font-medium">Subcategories</span>
+            <span className="text-gray-900 font-medium">Seller Requested Sub Category</span>
           </nav>
+        </div>
+
+        {/* 🔹 Top filter select */}
+        <div>
+          <Select onValueChange={(value) => setStatusFilter(value as any)}>
+            <SelectTrigger className="w-[180px] !h-[40px]">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {/* Main content */}
       {subCategories.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 text-center py-10 mt-10">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No subcategories found
-          </h3>
-          <p className="text-gray-500 mb-6">
-            Get started by creating your first subcategory
-          </p>
-          <Link href="/subcategory/add">
-            <Button className="bg-red-500 hover:bg-red-600 text-white px-6 rounded-lg">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Subcategory
-            </Button>
-          </Link>
-        </div>
+       <div className="bg-white rounded-xl shadow-sm border border-gray-200 text-center py-10 my-20">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No {statusFilter} categories
+            </h3>
+          </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mt-10">
           {/* Table Header */}
@@ -202,7 +207,7 @@ function SellerRequestedSubCategory() {
                 Status
               </div>
               <div className="col-span-1 text-xs font-semibold text-gray-600 uppercase text-center">
-                Actions 
+                Actions
               </div>
             </div>
           </div>

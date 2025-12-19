@@ -100,7 +100,7 @@ function OrderList() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
           <nav className="flex items-center text-sm text-gray-500 mt-2">
@@ -108,7 +108,7 @@ function OrderList() {
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-gray-900 font-medium">Orders</span>
+            <span className="text-gray-900 font-medium">Orders History</span>
           </nav>
         </div>
       </div>

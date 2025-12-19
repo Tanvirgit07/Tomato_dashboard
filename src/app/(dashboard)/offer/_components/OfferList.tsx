@@ -90,7 +90,7 @@ function OfferList() {
   return (
     <div>
       {/* Header Section */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
             OFFERS
@@ -107,8 +107,8 @@ function OfferList() {
           </nav>
         </div>
         <Link href="/offer/add">
-          <Button className="bg-red-500 text-white px-8 h-[50px] rounded-lg font-semibold shadow-lg hover:bg-red-600 hover:shadow-xl transition-all duration-200 flex items-center gap-2">
-            <Plus className="!w-7 !h-7" />
+          <Button className="bg-red-500 text-white px-8 h-[40px] w-[150px] rounded-lg font-semibold shadow-lg hover:bg-red-600 hover:shadow-xl transition-all duration-200 flex items-center gap-2">
+            <Plus className="!w-6 !h-6" />
             Add Offer
           </Button>
         </Link>

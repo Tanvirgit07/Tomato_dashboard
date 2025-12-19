@@ -34,7 +34,7 @@ const navigation = [
   { name: "Sub Category", href: "/sub-category", icon: ShoppingBasket },
   { name: "Seller Categories", href: "/sr-category", icon: ShoppingBasket },
   {
-    name: "Seller SubCategories",
+    name: "Seller Sub Categories",
     href: "/sr-sub-category",
     icon: ShoppingBasket,
   },
