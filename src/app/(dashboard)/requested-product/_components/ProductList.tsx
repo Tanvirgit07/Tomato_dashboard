@@ -167,7 +167,7 @@ function ProductList() {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-        <div className="flex-1">
+        <div className="flex-1 ">
           <h1 className="text-3xl font-bold text-gray-900">
             Requested Products
           </h1>

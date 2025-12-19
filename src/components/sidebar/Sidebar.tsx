@@ -32,9 +32,9 @@ const navigation = [
   // },
   { name: "Main Category", href: "/category", icon: Grip },
   { name: "Sub Category", href: "/sub-category", icon: ShoppingBasket },
-  { name: "SR Category List", href: "/sr-category", icon: ShoppingBasket },
+  { name: "Seller Categories", href: "/sr-category", icon: ShoppingBasket },
   {
-    name: "SR Sub Category List",
+    name: "Seller SubCategories",
     href: "/sr-sub-category",
     icon: ShoppingBasket,
   },
@@ -55,7 +55,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-screen sticky bottom-0 top-0 w-[350px] flex-col bg-[#212121] z-50">
+    <div className="flex h-screen sticky bottom-0 top-0 w-[400px] flex-col bg-[#212121] z-50">
       {/* Logo */}
       <div className="h-[80px] flex items-center justify-start ml-3">
         <div className="text-2xl flex gap-1 font-bold text-blue-600 uppercase tracking-wider">

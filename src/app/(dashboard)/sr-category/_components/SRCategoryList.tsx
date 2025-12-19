@@ -41,8 +41,9 @@ const SRCategoryList: React.FC = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
+  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected">("pending"); // 🔹 filter state
 
-  // 🔹 Mutation for status change
+  // 🔹 Mutation for row status change
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const res = await fetch(
@@ -63,23 +64,6 @@ const SRCategoryList: React.FC = () => {
     },
   });
 
-  // Helper function to strip HTML tags
-  const stripHtml = (html: string) => {
-    if (typeof window === "undefined") return html;
-    const temp = document.createElement("div");
-    temp.innerHTML = html;
-    return temp.textContent || temp.innerText || "";
-  };
-
-  // Helper function to format date
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  };
-
   const handleDeleteClick = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
     setDeleteModalOpen(true);
@@ -99,9 +83,7 @@ const SRCategoryList: React.FC = () => {
         }
       );
 
-      if (!res.ok) {
-        throw new Error("Failed to delete category");
-      }
+      if (!res.ok) throw new Error("Failed to delete category");
 
       setDeleteModalOpen(false);
       setSelectedCategoryId(null);
@@ -109,6 +91,22 @@ const SRCategoryList: React.FC = () => {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  // Helper functions
+  const stripHtml = (html: string) => {
+    if (typeof window === "undefined") return html;
+    const temp = document.createElement("div");
+    temp.innerHTML = html;
+    return temp.textContent || temp.innerText || "";
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
   };
 
   if (isLoading) return <Loading />;
@@ -126,16 +124,16 @@ const SRCategoryList: React.FC = () => {
       </div>
     );
 
-  // 🔹 Filter only pending & rejected
+  // 🔹 Filter categories based on top select filter
   const categories =
     response?.data.filter(
-      (cat: any) => cat.status === "pending" || cat.status === "rejected"
+      (cat: any) => cat.status === statusFilter
     ) || [];
 
   return (
     <div className="">
       {/* Header Section */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
             Requested Category
@@ -148,39 +146,31 @@ const SRCategoryList: React.FC = () => {
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-gray-900 font-medium">Categories</span>
+            <span className="text-gray-900 font-medium">Seller Requested Categories</span>
           </nav>
         </div>
+
         <div className="flex items-center gap-6">
-          <div>
-            <Select>
-              <SelectTrigger className="w-[180px] !h-[50px]">
-                <SelectValue placeholder="Theme" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="system">System</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {/* <div>
-            <Link href="/category/add">
-              <Button className="bg-red-500 cursor-pointer text-base hover:bg-red-600 text-white px-8 h-[50px] rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2">
-                <Plus className="!w-7 !h-7" />
-                Add Category
-              </Button>
-            </Link>
-          </div> */}
+          {/* 🔹 Top filter select */}
+          <Select onValueChange={(value) => setStatusFilter(value as any)}>
+            <SelectTrigger className="w-[180px] !h-[40px]">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="">
         {categories.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 text-center py-10">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 text-center py-10 my-20">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No pending/rejected categories
+              No {statusFilter} categories
             </h3>
           </div>
         ) : (
@@ -200,7 +190,7 @@ const SRCategoryList: React.FC = () => {
                 <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
                   Status
                 </div>
-                <div className="col-span-3 text-xs font-semibold text-gray-600 uppercase text-center">
+                <div className="col-span-3 text-xs font-semibold text-gray-600 uppercase text-end mr-10">
                   Actions
                 </div>
               </div>
@@ -256,7 +246,7 @@ const SRCategoryList: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Status */}
+                  {/* Row Status Select */}
                   <div className="col-span-2 flex items-center justify-center">
                     <Select
                       onValueChange={(value) =>
@@ -279,7 +269,7 @@ const SRCategoryList: React.FC = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="col-span-3 flex items-center justify-center gap-3">
+                  <div className="col-span-3 flex items-center justify-end mr-6 gap-3">
                     <Link href={`/category/edit/${category._id}`}>
                       <Button
                         variant="outline"
