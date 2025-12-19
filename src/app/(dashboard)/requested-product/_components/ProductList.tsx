@@ -200,7 +200,7 @@ function ProductList() {
           </div>
           <div>
             <Link href="/approved-product/add">
-              <Button className="bg-red-500 hover:bg-red-600 text-white h-[40px] w-[150px] rounded-lg font-semibold shadow-lg flex items-center gap-2">
+              <Button className="bg-red-500 cursor-pointer hover:bg-red-600 text-white h-[40px] w-[150px] rounded-lg font-semibold shadow-lg flex items-center gap-2">
                 <Plus className="!w-5 !h-5" />
                 Add Product
               </Button>

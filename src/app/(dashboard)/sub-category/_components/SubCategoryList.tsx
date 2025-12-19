@@ -110,7 +110,7 @@ function SubCategoryList() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900">Sub Categories</h1>
           <nav className="flex items-center text-sm text-gray-500 mt-2">
@@ -162,7 +162,7 @@ function SubCategoryList() {
               <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
                 Updated At
               </div>
-              <div className="col-span-3 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="col-span-3 text-xs font-semibold text-gray-600 uppercase text-end mr-4">
                 Actions
               </div>
             </div>
@@ -218,7 +218,7 @@ function SubCategoryList() {
                 </div>
 
                 {/* Actions */}
-                <div className="col-span-3 flex items-center justify-center gap-3">
+                <div className="col-span-3 flex items-center justify-end gap-3">
                   <Link href={`/sub-category/edit/${sub._id}`}>
                     <Button
                       variant="outline"

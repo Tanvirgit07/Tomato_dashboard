@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight, Send } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -136,12 +136,13 @@ export function EditSubCategoryForm() {
   const updateSubCategoryMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/updatesubcategory/${id}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/subcategory/editsubcategory/${id}`,
         {
           method: "PUT",
           body: formData,
         }
       );
+      
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || "Failed to update subcategory");
@@ -171,7 +172,7 @@ export function EditSubCategoryForm() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-10">
+      <div className="flex items-center justify-between mb-10 bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
             Edit Subcategory
@@ -318,16 +319,28 @@ export function EditSubCategoryForm() {
             </div>
           </div>
 
-          {/* Submit */}
-          <div className="flex justify-end">
+          {/* Submit Button */}
+          <div className="flex justify-end items-center gap-5 mt-14">
+            <Link href="/sub-category">
             <Button
               type="submit"
-              className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg shadow-md"
-              disabled={updateSubCategoryMutation.isPending}
+              className="mt-4 w-[120px] h-[45px] flex items-center gap-2 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
-              {updateSubCategoryMutation.isPending
-                ? "Updating..."
-                : "Update Subcategory"}
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            </Link>
+
+            <Button
+              type="submit"
+              className="mt-4 w-[120px] h-[45px] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
+            >
+              {updateSubCategoryMutation.isPending ? (
+                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              {updateSubCategoryMutation.isPending ? "Submitting..." : "Submit"}
             </Button>
           </div>
         </form>

@@ -22,7 +22,7 @@ const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Send } from "lucide-react";
+import { ArrowLeft, ChevronRight, Send } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -124,7 +124,7 @@ export function EditCategoryForm() {
   return (
     <div>
       {/* Header Section */}
-      <div className="flex items-center justify-between mb-10">
+      <div className="flex items-center justify-between mb-10 bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
             Main Categories
@@ -233,7 +233,16 @@ export function EditCategoryForm() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end">
+          <div className="flex justify-end items-center gap-5 mt-14">
+            <Link href="/category">
+            <Button
+              type="submit"
+              className="mt-4 w-[120px] h-[45px] flex items-center gap-2 text-white shadow-md hover:shadow-lg transition-all duration-200"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            </Link>
             <Button
               type="submit"
               className="mt-4 w-[120px] h-[45px] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"

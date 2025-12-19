@@ -28,7 +28,7 @@ const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight, Upload, X } from "lucide-react";
+import { ArrowLeft, ChevronRight, Send, Upload, X } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Category, SubCategory } from "@/Types/categoryTypes";
@@ -576,45 +576,27 @@ export function EditProduct() {
             {/* Action Buttons */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mt-14">
               <div className="flex justify-end gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-12 px-8 border-gray-300 hover:bg-gray-50"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={updateProductMutation.isPending}
-                  className="h-12 px-8 bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
-                >
-                  {updateProductMutation.isPending ? (
-                    <span className="flex items-center gap-2">
-                      <svg
-                        className="animate-spin h-5 w-5"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                          fill="none"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Updating...
-                    </span>
-                  ) : (
-                    "Update Product"
-                  )}
-                </Button>
+                <Link href="/requested-product">
+            <Button
+              type="submit"
+              className="mt-4 cursor-pointer w-[120px] h-[45px] flex items-center gap-2 text-white shadow-md hover:shadow-lg transition-all duration-200"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            </Link>
+
+            <Button
+              type="submit"
+              className="mt-4 cursor-pointer w-[120px] h-[45px] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
+            >
+              {updateProductMutation.isPending ? (
+                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              {updateProductMutation.isPending ? "Submitting..." : "Submit"}
+            </Button>
               </div>
             </div>
           </form>
