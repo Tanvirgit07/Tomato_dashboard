@@ -166,7 +166,7 @@ function ProductList() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900">
             Requested Products
@@ -188,7 +188,7 @@ function ProductList() {
               value={selectedStatus}
               onValueChange={(value) => setSelectedStatus(value)}
             >
-              <SelectTrigger className="w-[150px] h-[40px]">
+              <SelectTrigger className="w-[150px] !h-[40px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
