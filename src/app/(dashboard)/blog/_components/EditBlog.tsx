@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +11,8 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
+import { ImagePlus, X, FileText, Upload, ChevronRight, ArrowLeft, Send, Image as ImageIconLucide } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,8 +22,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
@@ -30,7 +35,6 @@ const formSchema = z.object({
   slug: z.string().min(2, "Slug must be at least 2 characters."),
   excerpt: z.string().min(10, "Excerpt must be at least 10 characters."),
   content: z.string().min(10, "Content must be at least 10 characters."),
-//   category: z.string().min(1, "Please select a category."),
   featuredImage: z.any().optional(),
   subImages: z
     .any()
@@ -46,9 +50,7 @@ export function EditBlog() {
   const token = user?.accessToken;
 
   const [preview, setPreview] = useState<string | null>(null);
-  const [existingFeaturedImage, setExistingFeaturedImage] = useState<
-    string | null
-  >(null);
+  const [existingFeaturedImage, setExistingFeaturedImage] = useState<string | null>(null);
   const [existingSubImages, setExistingSubImages] = useState<string[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -58,7 +60,6 @@ export function EditBlog() {
       slug: "",
       excerpt: "",
       content: "",
-    //   category: "",
       featuredImage: null,
       subImages: null,
       isPublished: false,
@@ -99,7 +100,6 @@ export function EditBlog() {
         slug: data.slug,
         excerpt: data.excerpt,
         content: data.content,
-        // category: data.category,
         featuredImage: null,
         subImages: null,
         isPublished: data.isPublished,
@@ -108,7 +108,7 @@ export function EditBlog() {
       setExistingFeaturedImage(data.featuredImage?.url || null);
       setExistingSubImages(data.subImages?.map((img: any) => img.url) || []);
     }
-  }, [blogData]);
+  }, [blogData, form]);
 
   // Mutation to update blog
   const updateBlogMutation = useMutation({
@@ -140,7 +140,6 @@ export function EditBlog() {
     formData.append("slug", values.slug);
     formData.append("excerpt", values.excerpt);
     formData.append("content", values.content);
-    // formData.append("category", values.category);
     formData.append("authorName", user?.name || "Admin");
     formData.append("authorId", user?.id || "");
 
@@ -159,192 +158,312 @@ export function EditBlog() {
     updateBlogMutation.mutate(formData);
   };
 
-  if (blogLoading) return <p>Loading blog data...</p>;
+  if (blogLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading blog data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Edit Blog</h1>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Title */}
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter blog title" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <div className="min-h-screen">
+      <div className="">
+        {/* Header */}
+        <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+              Edit Blog
+            </h1>
+            <nav className="flex items-center text-sm text-gray-500 mt-2">
+              <Link href="/dashboard" className="hover:text-gray-700">
+                Dashboard
+              </Link>
+              <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+              <Link href="/blogs" className="hover:text-gray-700">
+                Blogs
+              </Link>
+              <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+              <span className="text-gray-900 font-medium">Edit Blog</span>
+            </nav>
+          </div>
+        </div>
 
-          {/* Slug */}
-          <FormField
-            control={form.control}
-            name="slug"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Slug</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter unique slug" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <Form {...form}>
+          <div className="space-y-6">
+            {/* Basic Information Card */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-t-lg py-2.5">
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Basic Information
+                </CardTitle>
+                <CardDescription className="text-blue-50">
+                  Update the essential details of your blog post
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                {/* Title */}
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-700 font-semibold">Blog Title</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter an engaging title..."
+                          className="border-slate-300 h-[45px] focus:border-blue-500 focus:ring-blue-500"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          {/* Excerpt */}
-          <FormField
-            control={form.control}
-            name="excerpt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Excerpt</FormLabel>
-                <FormControl>
-                  <Input placeholder="Short summary" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                {/* Slug */}
+                <FormField
+                  control={form.control}
+                  name="slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-700 font-semibold">URL Slug</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="url-friendly-slug"
+                          className="border-slate-300 h-[45px] focus:border-blue-500 focus:ring-blue-500 font-mono text-sm"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        Used in the blog post URL. Use lowercase and hyphens.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          {/* Content */}
-          <FormField
-            control={form.control}
-            name="content"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Content</FormLabel>
-                <FormControl>
-                  <Controller
-                    name="content"
-                    control={form.control}
-                    render={({ field }) => (
-                      <ReactQuill
-                        value={field.value}
-                        onChange={field.onChange}
-                        theme="snow"
-                        placeholder="Write blog content here..."
-                        className="min-h-[300px]"
-                      />
-                    )}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                {/* Excerpt */}
+                <FormField
+                  control={form.control}
+                  name="excerpt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-700 font-semibold">Excerpt</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Write a compelling summary..."
+                          className="border-slate-300 h-[45px] focus:border-blue-500 focus:ring-blue-500"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        A brief summary that appears in previews and search results.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
 
-          {/* <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value || ""}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories?.data?.length > 0 ? (
-                      categories.data.map((cat: any) => (
-                        <SelectItem key={cat._id} value={cat.categoryName}>
-                          {cat.categoryName}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="none" disabled>
-                        No categories found
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
+            {/* Content Card */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-t-lg py-2.5">
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Content
+                </CardTitle>
+                <CardDescription className="text-indigo-50">
+                  Update your blog post content
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Controller
+                          name="content"
+                          control={form.control}
+                          render={({ field }) => (
+                            <div className="rounded-lg overflow-hidden border border-slate-200">
+                              <ReactQuill
+                                value={field.value}
+                                onChange={field.onChange}
+                                theme="snow"
+                                placeholder="Write your amazing content here..."
+                                className="min-h-[400px] bg-white"
+                              />
+                            </div>
+                          )}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
 
-          {/* Featured Image */}
-          <FormField
-            control={form.control}
-            name="featuredImage"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Featured Image</FormLabel>
-                <FormControl>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      field.onChange(file);
-                      if (file) setPreview(URL.createObjectURL(file));
-                    }}
-                  />
-                </FormControl>
-                {preview ? (
-                  <div className="w-full h-64 mt-2 relative border border-gray-300 rounded">
-                    <Image
-                      src={preview}
-                      alt="preview"
-                      fill
-                      className="object-cover rounded"
-                      unoptimized
-                    />
+            {/* Featured Image Card */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-t-lg py-2.5">
+                <CardTitle className="flex items-center gap-2">
+                  <ImageIconLucide className="w-5 h-5" />
+                  Featured Image
+                </CardTitle>
+                <CardDescription className="text-purple-50">
+                  Update the main image for your blog post
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <FormField
+                  control={form.control}
+                  name="featuredImage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="space-y-4">
+                          <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <Upload className="w-12 h-12 mb-3 text-slate-400" />
+                              <p className="mb-2 text-sm text-slate-600 font-medium">
+                                Click to upload new featured image
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                PNG, JPG or WEBP (MAX. 800x400px)
+                              </p>
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                field.onChange(file);
+                                if (file) setPreview(URL.createObjectURL(file));
+                              }}
+                            />
+                          </label>
+
+                          {preview ? (
+                            <div className="relative w-full h-80 rounded-lg overflow-hidden border-2 border-blue-200 shadow-md">
+                              <Image
+                                src={preview}
+                                alt="preview"
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPreview(null);
+                                  field.onChange(null);
+                                }}
+                                className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                              <div className="absolute bottom-2 left-2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                                New Image
+                              </div>
+                            </div>
+                          ) : existingFeaturedImage ? (
+                            <div className="relative w-full h-80 rounded-lg overflow-hidden border-2 border-slate-200 shadow-md">
+                              <Image
+                                src={existingFeaturedImage}
+                                alt="existing featured"
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                              <div className="absolute bottom-2 left-2 bg-slate-700 text-white px-3 py-1 rounded-full text-xs font-medium">
+                                Current Image
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Existing Sub Images Display */}
+            {existingSubImages.length > 0 && (
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-t-lg py-2.5">
+                  <CardTitle className="flex items-center gap-2">
+                    <ImagePlus className="w-5 h-5" />
+                    Current Additional Images
+                  </CardTitle>
+                  <CardDescription className="text-pink-50">
+                    These are your existing additional images
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {existingSubImages.map((url, idx) => (
+                      <div
+                        key={idx}
+                        className="aspect-square rounded-lg border-2 border-slate-200 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <Image
+                          src={url}
+                          alt={`subImage-${idx}`}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                          <p className="text-white text-xs font-medium">Image {idx + 1}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ) : existingFeaturedImage ? (
-                  <div className="w-full h-64 mt-2 relative border border-gray-300 rounded">
-                    <Image
-                      src={existingFeaturedImage}
-                      alt="existing featured"
-                      fill
-                      className="object-cover rounded"
-                      unoptimized
-                    />
-                  </div>
-                ) : null}
-                <FormMessage />
-              </FormItem>
+                </CardContent>
+              </Card>
             )}
-          />
 
-          {/* Sub Images */}
-          {existingSubImages.length > 0 && (
-            <div className="flex gap-2 mt-2">
-              {existingSubImages.map((url, idx) => (
-                <div
-                  key={idx}
-                  className="w-24 h-24 relative border border-gray-300 rounded"
-                >
-                  <Image
-                    src={url}
-                    alt={`subImage-${idx}`}
-                    fill
-                    className="object-cover rounded"
-                    unoptimized
-                  />
-                </div>
-              ))}
+            {/* Action Buttons */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mt-14">
+              <div className="flex justify-end gap-4">
+                <Link href="/requested-product">
+            <Button
+              type="submit"
+              className="mt-4 cursor-pointer w-[120px] h-[45px] flex items-center gap-2 text-white shadow-md hover:shadow-lg transition-all duration-200"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            </Link>
+
+            <Button
+              type="submit"
+              className="mt-4 cursor-pointer w-[120px] h-[45px] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
+            >
+              {updateBlogMutation.isPending ? (
+                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              {updateBlogMutation.isPending ? "Submitting..." : "Submit"}
+            </Button>
+              </div>
             </div>
-          )}
-
-          {/* Submit */}
-          <Button
-            type="submit"
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg"
-          >
-            Update Blog
-          </Button>
-        </form>
-      </Form>
+          </div>
+        </Form>
+      </div>
     </div>
   );
 }

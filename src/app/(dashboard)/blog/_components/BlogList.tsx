@@ -53,7 +53,6 @@ const BlogList: React.FC = () => {
       refetch();
     } catch (error) {
       toast.error("Failed to delete blog");
-      console.error(error);
     } finally {
       setIsDeleting(false);
     }
@@ -76,14 +75,14 @@ const BlogList: React.FC = () => {
 
   return (
     <div>
-      {/* Header Section */}
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
             Blogs
           </h1>
           <nav className="flex items-center text-sm text-gray-500 mt-2">
-            <Link href="/dashboard" className="hover:text-gray-700 transition-colors">
+            <Link href="/dashboard" className="hover:text-gray-700">
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
@@ -91,14 +90,14 @@ const BlogList: React.FC = () => {
           </nav>
         </div>
         <Link href="/blog/add">
-          <Button className="bg-blue-500 hover:bg-blue-600 text-white px-8 h-[50px] rounded-lg font-semibold shadow-lg flex items-center gap-2">
-            <Plus className="!w-7 !h-7" />
+          <Button className="bg-red-500 cursor-pointer hover:bg-red-600 text-white h-[40px] w-[130px] rounded-lg font-semibold shadow-lg flex items-center gap-2">
+            <Plus className="!w-6 !h-6" />
             Add Blog
           </Button>
         </Link>
       </div>
 
-      {/* Blog Table */}
+      {/* Table */}
       <div className="mt-10 bg-white rounded-xl border border-gray-200 overflow-hidden">
         {/* Table Header */}
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
@@ -115,7 +114,8 @@ const BlogList: React.FC = () => {
             <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
               Author
             </div>
-            <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">
+            {/* ✅ Actions at END */}
+            <div className="col-span-3 text-xs font-semibold text-gray-600 uppercase text-end mr-5">
               Actions
             </div>
           </div>
@@ -130,7 +130,7 @@ const BlogList: React.FC = () => {
                 index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
               }`}
             >
-              {/* Featured Image */}
+              {/* Image */}
               <div className="col-span-2 flex items-center justify-center relative w-[100px] h-24">
                 {blog.featuredImage?.url && (
                   <Image
@@ -142,12 +142,14 @@ const BlogList: React.FC = () => {
                 )}
               </div>
 
-              {/* Title & Excerpt */}
+              {/* Title */}
               <div className="col-span-3 flex flex-col justify-center">
-                <h3 className="font-semibold text-gray-900 text-base truncate">
+                <h3 className="font-semibold text-gray-900 truncate">
                   {blog.title}
                 </h3>
-                <p className="text-sm text-gray-500 line-clamp-2">{blog.excerpt}</p>
+                <p className="text-sm text-gray-500 line-clamp-2">
+                  {blog.excerpt}
+                </p>
               </div>
 
               {/* Category */}
@@ -157,12 +159,16 @@ const BlogList: React.FC = () => {
 
               {/* Author */}
               <div className="col-span-2 flex flex-col items-center justify-center">
-                <span className="text-sm font-medium text-gray-700">{blog.user.name}</span>
-                <span className="text-xs text-gray-400">{blog.user.email}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {blog.user.name}
+                </span>
+                <span className="text-xs text-gray-400">
+                  {blog.user.email}
+                </span>
               </div>
 
-              {/* Actions */}
-              <div className="col-span-2 flex items-center justify-center gap-3">
+              {/* ✅ Actions END */}
+              <div className="col-span-3 flex items-center justify-end gap-3">
                 <Link href={`/blog/edit/${blog._id}`}>
                   <Button
                     variant="outline"
@@ -186,12 +192,10 @@ const BlogList: React.FC = () => {
         </div>
       </div>
 
-      {/* Delete Modal */}
       <DeleteModal
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={confirmDelete}
-        // isDeleting={isDeleting}
       />
     </div>
   );

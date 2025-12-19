@@ -16,6 +16,8 @@ import {
   // Bell,
 } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
+import { LogoutModal } from "../Modal/LogoutModal";
 // import logoImage from "@/public/images/logo.svg";
 
 const navigation = [
@@ -53,6 +55,7 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
   return (
     <div className="flex h-screen sticky bottom-0 top-0 w-[400px] flex-col bg-[#212121] z-50">
@@ -117,11 +120,16 @@ export function Sidebar() {
 
       {/* Logout fixed at bottom */}
       <div className="p-6">
-        <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-slate-600/50 hover:text-white cursor-pointer">
+        <div onClick={() => setOpen(true)} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-slate-600/50 hover:text-white cursor-pointer">
           <LogOut className="h-5 w-5" />
           <span className="font-normal text-base leading-none">Log Out</span>
         </div>
       </div>
+
+      <LogoutModal
+        open={open}
+        onClose={() => setOpen(false)}
+      />
     </div>
   );
 }

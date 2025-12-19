@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Trash2, X } from "lucide-react";
+import { ChevronRight, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import Loading from "@/components/Shear/Loading";
 import { DeleteModal } from "@/components/Modal/DeleteModal";
@@ -18,6 +18,7 @@ import {
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 // 🔹 API Response Types
 interface DeliveryAgent {
@@ -57,7 +58,6 @@ const RequestedBoy: React.FC = () => {
     data: response,
     isLoading,
     isError,
-    refetch,
   } = useQuery<ApiResponse>({
     queryKey: ["requested-boy", statusFilter, debouncedSearch],
     queryFn: async () => {
@@ -143,10 +143,21 @@ const RequestedBoy: React.FC = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-          Requested Delivery Boys
-        </h1>
+      <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex-wrap gap-4">
+        <div className="flex-1 ">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Requested Delivary Boy
+          </h1>
+          <nav className="flex items-center text-sm text-gray-500 mt-2">
+            <Link href="/dashboard" className="hover:text-gray-700">
+              Dashboard
+            </Link>
+            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+            <span className="text-gray-900 font-medium">
+              Requested Delivary Boy
+            </span>
+          </nav>
+        </div>
         {/* Filter & Search */}
         <div className="flex items-center gap-4">
           <Select
@@ -212,7 +223,7 @@ const RequestedBoy: React.FC = () => {
               <div className="col-span-2 text-xs font-semibold uppercase text-center">
                 Status
               </div>
-              <div className="col-span-2 text-xs font-semibold uppercase text-end">
+              <div className="col-span-2 text-xs font-semibold uppercase text-end mr-10">
                 Actions
               </div>
             </div>
@@ -263,7 +274,7 @@ const RequestedBoy: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="col-span-2 flex items-center justify-end gap-3">
+                  <div className="col-span-2 flex items-center justify-end gap-3 mr-10">
                     <Button
                       variant="outline"
                       size="icon"
