@@ -23,17 +23,12 @@ import { LogoutModal } from "../Modal/LogoutModal";
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   {
-    name: "Requested Products",
+    name: "Products Management",
     href: "/requested-product",
     icon: LayoutDashboard,
   },
-  // {
-  //   name: "Approved Products",
-  //   href: "/approved-product",
-  //   icon: LayoutDashboard,
-  // },
-  { name: "Main Category", href: "/category", icon: Grip },
-  { name: "Sub Category", href: "/sub-category", icon: ShoppingBasket },
+  { name: "Category Management", href: "/category", icon: Grip },
+  { name: "SubCategory Management", href: "/sub-category", icon: ShoppingBasket },
   { name: "Seller Categories", href: "/sr-category", icon: ShoppingBasket },
   {
     name: "Seller Sub Categories",
@@ -41,10 +36,10 @@ const navigation = [
     icon: ShoppingBasket,
   },
 
-  { name: "Order", href: "/orders", icon: ShoppingCart },
-  { name: "Offers", href: "/offer", icon: FileText },
-  { name: "Requested Boy", href: "/rquested-boy", icon: MessageSquare },
-  { name: "Requested Seller", href: "/requested-seller", icon: Scissors },
+  { name: "Order Management", href: "/orders", icon: ShoppingCart },
+  { name: "Offers Management", href: "/offer", icon: FileText },
+  { name: "Rider Management", href: "/rquested-boy", icon: MessageSquare },
+  { name: "Seller Management", href: "/requested-seller", icon: Scissors },
 
   {
     name: "Blog Management",
