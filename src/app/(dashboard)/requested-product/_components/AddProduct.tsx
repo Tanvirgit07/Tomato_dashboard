@@ -57,6 +57,9 @@ const formSchema = z.object({
   subCategoryId: z
     .string()
     .min(1, { message: "Please select a parent subcategory." }),
+  sellerId: z
+    .string()
+    .min(1, { message: "Please select a seller." }),
   description: z
     .string()
     .min(10, "Description must be at least 10 characters")
@@ -87,6 +90,7 @@ export function AddProduct() {
       discountPrice: 0,
       categoryId: "",
       subCategoryId: "",
+      sellerId: "",
       description: "",
       image: null,
       subImages: null,
@@ -116,6 +120,25 @@ export function AddProduct() {
     },
   });
 
+  const { data: getSeller } = useQuery({
+    queryKey: ["sellers"],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/seller/get-seller`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch sellers");
+      }
+
+      return res.json();
+    },
+  });
+
   const createProductMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const res = await fetch(
@@ -123,7 +146,7 @@ export function AddProduct() {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`, // Content-Type দেওয়া যাবে না
+            Authorization: `Bearer ${token}`,
           },
           body: data,
         }
@@ -146,6 +169,7 @@ export function AddProduct() {
     formData.append("discountPrice", values.discountPrice.toString());
     formData.append("categoryId", values.categoryId);
     formData.append("subCategoryId", values.subCategoryId);
+    formData.append("sellerId", values.sellerId);
     formData.append("description", values.description);
     formData.append("stock", values?.stock.toString());
 
@@ -373,6 +397,37 @@ export function AddProduct() {
                             {sub.name}
                           </SelectItem>
                         )) || <p>No subcategories found</p>}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Seller Select */}
+              <FormField
+                control={form.control}
+                name="sellerId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">
+                      Select Seller
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="!h-[50px] w-full">
+                          <SelectValue
+                            placeholder="Select a seller"
+                            className="text-base"
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {getSeller?.data?.map((seller: any) => (
+                          <SelectItem key={seller._id} value={seller._id}>
+                            {seller.shopName || seller.name || seller.email}
+                          </SelectItem>
+                        )) || <p>No sellers found</p>}
                       </SelectContent>
                     </Select>
                     <FormMessage />

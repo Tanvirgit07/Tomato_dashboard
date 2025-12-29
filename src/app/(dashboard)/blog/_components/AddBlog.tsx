@@ -40,9 +40,17 @@ const formSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters."),
   slug: z.string().min(2, "Slug must be at least 2 characters."),
   excerpt: z.string().min(10, "Excerpt must be at least 10 characters."),
-  content: z.string().min(10, "Content must be at least 10 characters."),
+  content: z.string().min(10, "Content must be at least 10 characters.").refine(
+    (val) => {
+      const text = val.replace(/<[^>]*>/g, '').trim();
+      return text.length >= 10;
+    },
+    { message: "Content must contain at least 10 characters of actual text" }
+  ),
   category: z.string().min(1, "Please select a category."),
-  featuredImage: z.any().optional(),
+  featuredImage: z.any().refine((file) => file !== null && file !== undefined, {
+    message: "Featured image is required.",
+  }),
   subImages: z
     .any()
     .optional()
@@ -60,6 +68,7 @@ export function AddBlog() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       title: "",
       slug: "",
@@ -101,31 +110,46 @@ export function AddBlog() {
       }
       return res.json();
     },
-    onSuccess: (data) => toast.success(data.message || "Blog created successfully"),
-    onError: (error: any) => toast.error(error.message),
+    onSuccess: (data) => {
+      toast.success(data.message || "Blog created successfully");
+      form.reset();
+      setPreview(null);
+      setAdditionalPreviews([]);
+    },
+    onError: (error: any) => {
+      toast.error(error.message);
+    },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const formData = new FormData();
-    formData.append("title", values.title);
-    formData.append("slug", values.slug);
-    formData.append("excerpt", values.excerpt);
-    formData.append("content", values.content);
-    formData.append("category", values.category);
-    formData.append("authorName", user?.name || "Admin");
-    formData.append("authorId", user?.id || "");
+    try {
+      const formData = new FormData();
+      formData.append("title", values.title);
+      formData.append("slug", values.slug);
+      formData.append("excerpt", values.excerpt);
+      formData.append("content", values.content);
+      formData.append("category", values.category);
+      formData.append("authorName", user?.name || "Admin");
+      formData.append("authorId", user?.id || "");
 
-    if (values.featuredImage) formData.append("featuredImage", values.featuredImage);
+      if (values.featuredImage) {
+        formData.append("featuredImage", values.featuredImage);
+      }
 
-    if (values.subImages) {
-      const files = Array.from(values.subImages as FileList);
-      files.forEach((file) => formData.append("subImages", file));
+      if (values.subImages) {
+        const files = Array.from(values.subImages as FileList);
+        files.forEach((file) => formData.append("subImages", file));
+      }
+
+      if (values.isPublished !== undefined) {
+        formData.append("isPublished", values.isPublished.toString());
+      }
+
+      createBlogMutation.mutate(formData);
+    } catch (error) {
+      console.error("Form submission error:", error);
+      toast.error("Failed to submit form");
     }
-
-    if (values.isPublished !== undefined)
-      formData.append("isPublished", values.isPublished.toString());
-
-    createBlogMutation.mutate(formData);
   };
 
   return (
@@ -148,7 +172,7 @@ export function AddBlog() {
       </div>
 
         <Form {...form}>
-          <div onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Card className="border-0 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-t-lg py-2.5">
                 <CardTitle className="flex items-center gap-2 ">
@@ -277,7 +301,7 @@ export function AddBlog() {
                                 onChange={field.onChange}
                                 theme="snow"
                                 placeholder="Start writing your amazing content here..."
-                                className="min-h-[400px] bg-white"
+                                className="h-[400px] bg-white"
                               />
                             </div>
                           )}
@@ -324,8 +348,10 @@ export function AddBlog() {
                               className="hidden"
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
-                                field.onChange(file);
-                                if (file) setPreview(URL.createObjectURL(file));
+                                if (file) {
+                                  field.onChange(file);
+                                  setPreview(URL.createObjectURL(file));
+                                }
                               }}
                             />
                           </label>
@@ -449,7 +475,7 @@ export function AddBlog() {
               <div className="flex justify-end gap-4">
                 <Link href="/requested-product">
             <Button
-              type="submit"
+              type="button"
               className="mt-4 cursor-pointer w-[120px] h-[45px] flex items-center gap-2 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -459,7 +485,8 @@ export function AddBlog() {
 
             <Button
               type="submit"
-              className="mt-4 cursor-pointer w-[120px] h-[45px] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
+              disabled={createBlogMutation.isPending}
+              className="mt-4 cursor-pointer w-[120px] h-[45px] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {createBlogMutation.isPending ? (
                 <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
@@ -470,7 +497,7 @@ export function AddBlog() {
             </Button>
               </div>
             </div>
-          </div>
+          </form>
         </Form>
       </div>
     </div>

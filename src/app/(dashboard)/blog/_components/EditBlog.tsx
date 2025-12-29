@@ -299,7 +299,7 @@ export function EditBlog() {
                                 onChange={field.onChange}
                                 theme="snow"
                                 placeholder="Write your amazing content here..."
-                                className="min-h-[400px] bg-white"
+                                className="h-[400px] bg-white"
                               />
                             </div>
                           )}
